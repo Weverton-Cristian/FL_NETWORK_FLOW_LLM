@@ -1,0 +1,100 @@
+{
+  "simulation_name": "WiFi_CICIDS2018_Tuesday_700k_30r_200s_article",
+  "results_dir": "/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday_700k_30r_200s_article",
+  "best_overall": {
+    "round": "14",
+    "k": "5",
+    "granularity": "flow",
+    "threshold_mode": "fpr_target",
+    "fpr_target": "0.1",
+    "calibration_source": "calibration_benign",
+    "calibration_num_samples": "35000",
+    "threshold": "0.875",
+    "f1_score": "0.6275919911488633",
+    "precision": "0.8358446620401179",
+    "recall": "0.5024142857142857",
+    "benign_fpr": "0.09867142857142858",
+    "fedprox_mu": "0.0",
+    "aggregation_method": "FedAvg"
+  },
+  "best_by_k": [
+    {
+      "round": "25",
+      "k": "1",
+      "granularity": "flow",
+      "threshold_mode": "fpr_target",
+      "fpr_target": "0.1",
+      "calibration_source": "calibration_benign",
+      "calibration_num_samples": "35000",
+      "threshold": "0.7456647157669067",
+      "f1_score": "0.6260399185917807",
+      "precision": "0.8343723232130961",
+      "recall": "0.5009571428571429",
+      "benign_fpr": "0.09944285714285714",
+      "fedprox_mu": "0.0",
+      "aggregation_method": "FedAvg"
+    },
+    {
+      "round": "14",
+      "k": "5",
+      "granularity": "flow",
+      "threshold_mode": "fpr_target",
+      "fpr_target": "0.1",
+      "calibration_source": "calibration_benign",
+      "calibration_num_samples": "35000",
+      "threshold": "0.875",
+      "f1_score": "0.6275919911488633",
+      "precision": "0.8358446620401179",
+      "recall": "0.5024142857142857",
+      "benign_fpr": "0.09867142857142858",
+      "fedprox_mu": "0.0",
+      "aggregation_method": "FedAvg"
+    }
+  ],
+  "communication_summary": {
+    "rounds": 30,
+    "mean_selected_clients": 10.0,
+    "mean_bytes_total": 18432000.0,
+    "mean_params_total": 4608000.0
+  },
+  "train_counts": {
+    "total": 560000,
+    "benign": 560000,
+    "anomaly": 0
+  },
+  "test_counts": {
+    "total": 140000,
+    "benign": 70000,
+    "anomaly": 70000
+  },
+  "calibration_counts": {
+    "total": 35000,
+    "benign": 35000,
+    "anomaly": 0
+  },
+  "temporal_rows": 60,
+  "observations": [
+    "O detector ficou relativamente conservador, priorizando precis\u00e3o acima de sensibilidade extrema.",
+    "A melhor rodada apareceu no meio do treino, indicando aprendizado cont\u00ednuo sem satura\u00e7\u00e3o imediata."
+  ],
+  "baseline_k1": {
+    "round": "3",
+    "k": "1",
+    "granularity": "flow",
+    "threshold_mode": "f1_max",
+    "fpr_target": "",
+    "threshold": "0.9",
+    "f1_score": "0.6962052641355041",
+    "precision": "0.5367075086882822",
+    "recall": "0.9905857142857143",
+    "benign_fpr": "0.8550857142857143",
+    "fedprox_mu": "0.0",
+    "aggregation_method": "FedAvg"
+  },
+  "delta_vs_baseline_k1": {
+    "f1_score": -0.06861327298664077,
+    "precision": 0.29913715335183566,
+    "recall": -0.4881714285714286,
+    "benign_fpr": -0.7564142857142857
+  }
+}

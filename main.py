@@ -2,6 +2,10 @@ import yaml
 import argparse
 import os
 import copy
+import random
+import numpy as np
+import torch
+from src.data_processing.wifi_processor import WiFiProcessor
 from src.data_processing.ransomlog_processor import RansomLogProcessor
 from src.data_processing.hdfs_processor import HDFSProcessor
 from src.data_processing.edge_ransomware_processor import EdgeRansomwareProcessor
@@ -20,6 +24,23 @@ def _merge_overrides(base: dict, overrides: dict) -> dict:
         merged[k] = v
     return merged
 
+
+def _set_global_seed(config: dict) -> None:
+    """
+    Sets the main-process random seed for better run-to-run reproducibility.
+
+    This does not make every CUDA kernel fully deterministic, but it does fix the
+    project-level stochastic sources we control directly: Python, NumPy and torch.
+    """
+    seed = int(config.get("random_seed", 42))
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    print(f"Global random seed set to {seed}.")
+
 def main(config_path):
     """
     Main function to orchestrate the federated learning pipeline.
@@ -37,6 +58,7 @@ def main(config_path):
 
     # Configure Hugging Face cache/offline behavior before any tokenizer/model loads.
     apply_hf_environment(config)
+    _set_global_seed(config)
 
     # 2. Execute Data Processing Pipeline
     # This factory pattern dynamically selects the correct processor based on the config.
@@ -47,6 +69,8 @@ def main(config_path):
         processor = EdgeRansomwareProcessor(config)
     elif config['dataset_name'] == 'hdfs':
         processor = HDFSProcessor(config)
+    elif config['dataset_name'] == 'wifi':
+        processor = WiFiProcessor(config)
     else:
         raise ValueError(f"Dataset '{config['dataset_name']}' not supported in the current implementation.")
     

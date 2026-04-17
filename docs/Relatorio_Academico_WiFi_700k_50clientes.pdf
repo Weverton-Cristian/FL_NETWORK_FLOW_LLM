@@ -1,0 +1,1314 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+2 0 obj
+<< /Length 4187 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(Relatório Acadêmico - Experimento 700k / 50 Clientes@page { size: A4; margin: 1.8cm; }) Tj
+T*
+(body { font-family: "Liberation Serif", "DejaVu Serif", serif; color: #111827;) Tj
+T*
+(line-height: 1.55; font-size: 11pt; } h1, h2, h3 { color: #0f172a; margin-top: 1.15em;) Tj
+T*
+(margin-bottom: 0.45em; } h1 { font-size: 22pt; border-bottom: 2px solid #1e293b;) Tj
+T*
+(padding-bottom: 8px; } h2 { font-size: 16pt; border-bottom: 1px solid #cbd5e1;) Tj
+T*
+(padding-bottom: 3px; } h3 { font-size: 13pt; } p { margin: 0.45em 0; text-align:) Tj
+T*
+(justify; } ul { margin: 0.35em 0 0.7em 1.25em; } li { margin: 0.18em 0; } code {) Tj
+T*
+(background: #f1f5f9; padding: 0.12em 0.25em; border-radius: 3px; font-family:) Tj
+T*
+("Liberation Mono", monospace; font-size: 10pt; } pre { background: #f8fafc; border: 1px) Tj
+T*
+(solid #cbd5e1; padding: 10px; white-space: pre-wrap; font-family: "Liberation Mono",) Tj
+T*
+(monospace; font-size: 9.3pt; line-height: 1.35; } table { border-collapse: collapse;) Tj
+T*
+(width: 100%; margin: 0.6em 0 1em 0; font-size: 10pt; } th, td { border: 1px solid) Tj
+T*
+(#cbd5e1; padding: 6px 8px; vertical-align: top; } th { background: #e2e8f0; text-align:) Tj
+T*
+(left; } .capa { min-height: 720px; display: flex; flex-direction: column;) Tj
+T*
+(justify-content: space-between; text-align: center; page-break-after: always; } .capa h1) Tj
+T*
+({ border: none; font-size: 24pt; margin-top: 2.5cm; } .capa .subtitle { font-size: 14pt;) Tj
+T*
+(line-height: 1.6; } .capa .meta { font-size: 12pt; line-height: 1.7; margin-bottom:) Tj
+T*
+(1.5cm; } .ok { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 10px 12px;) Tj
+T*
+(margin: 0.8em 0; } .warn { background: #fff7ed; border-left: 4px solid #ea580c; padding:) Tj
+T*
+(10px 12px; margin: 0.8em 0; }) Tj
+T*
+() Tj
+T*
+(Relatório Acadêmico Completo) Tj
+T*
+(Experimento de Aprendizado Federado com700.000logse50clientes sobre o datasetCIC-IDS2018) Tj
+T*
+(-) Tj
+T*
+(Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csvProjeto:FL_RANSOM_LLMExperimento:WiFi_CICIDS2018_Tuesday_700kData) Tj
+T*
+(de geração:27/03/2026Raiz do projeto:/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM) Tj
+T*
+() Tj
+T*
+(Resumo) Tj
+T*
+() Tj
+T*
+(Este relatório documenta de forma aprofundada o experimento final configurado com) Tj
+T*
+(700.000 logs processados do dataset CIC-IDS2018 Tuesday e 50 clientes federados no) Tj
+T*
+(repositórioFL_RANSOM_LLM. O objetivo foi consolidar uma configuração computacionalmente) Tj
+T*
+(viável e metodologicamente mais realista do que os experimentos preliminares,) Tj
+T*
+(preservando a lógica de detecção de anomalias baseada em aprendizado do comportamento) Tj
+T*
+(benigno e avaliação posterior em conjunto misto.) Tj
+T*
+() Tj
+T*
+(A configuração final utilizou 560.000 fluxos benignos para treino, 70.000 fluxos) Tj
+T*
+(benignos para teste e 70.000 fluxos anômalos para teste, totalizando 700.000 logs. O) Tj
+T*
+(cenário federado foi organizado em 50 clientes com divisão IID, participação de 20% dos) Tj
+T*
+(clientes por rodada, 5 rodadas federadas, 10 clientes selecionados por rodada, 2 GPUs e) Tj
+T*
+(20 passos de treino por cliente selecionado em cada rodada.) Tj
+T*
+() Tj
+T*
+(O melhor resultado observado ocorreu emK=1na rodada3, comF1 = 0.6962,Precisão =) Tj
+T*
+(0.5367,Revocação = 0.9906eFPR Benigna = 0.8551. Em comparação com o experimento anterior) Tj
+T*
+(de 250 mil logs e 2 clientes, houve leve ganho em F1 e pequena redução da FPR benigna,) Tj
+T*
+(indicando melhoria incremental, embora a taxa de falso positivo ainda permaneça alta) Tj
+T*
+(para uso operacional.) Tj
+T*
+() Tj
+T*
+(Palavras-chave:aprendizado federado, detecção de anomalias, CIC-IDS2018, modelos de) Tj
+T*
+(linguagem, LoRA, análise de tráfego de rede, otimização de experimentos.) Tj
+T*
+() Tj
+T*
+(Abstract) Tj
+T*
+() Tj
+T*
+(This report presents a complete academic account of the final 700k-log / 50-client) Tj
+T*
+(experiment conducted on top of theFL_RANSOM_LLMrepository using the CIC-IDS2018 Tuesday) Tj
+T*
+(flow dataset. The experiment was designed to balance computational practicality and) Tj
+T*
+(methodological realism after earlier smaller and much larger trial configurations.) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Length 3977 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(The final setup used 560,000 benign training flows, 70,000 benign test flows, 70,000) Tj
+T*
+(anomalous test flows, 50 IID clients, 20% client participation per round, and 5) Tj
+T*
+(federated rounds. The best result was obtained at round 3 with top-1 F1 = 0.6962. The) Tj
+T*
+(new setup slightly improved F1 and benign false-positive rate over the previous 250k /) Tj
+T*
+(2-client experiment, while remaining much more operationally feasible than the) Tj
+T*
+(full-dataset attempt.) Tj
+T*
+() Tj
+T*
+(1. Introdução) Tj
+T*
+() Tj
+T*
+(Após a integração bem-sucedida do dataset CIC-IDS2018 Tuesday ao repositório, surgiram) Tj
+T*
+(três cenários experimentais distintos: um experimento reduzido com 250 mil logs e 2) Tj
+T*
+(clientes, uma tentativa de execução do dataset completo com treinamento por época que se) Tj
+T*
+(mostrou excessivamente custosa, e por fim o experimento atual, concebido como) Tj
+T*
+(compromisso entre fidelidade e viabilidade.) Tj
+T*
+() Tj
+T*
+(O experimento com 700 mil logs e 50 clientes foi escolhido porque preserva diversidade) Tj
+T*
+(de dados, introduz um cenário federado mais próximo de um ambiente multi-cliente real e,) Tj
+T*
+(ao mesmo tempo, mantém tempo de execução compatível com ciclos iterativos de pesquisa.) Tj
+T*
+(Além disso, ele permite analisar explicitamente o efeito de aumentar a quantidade de) Tj
+T*
+(clientes sem levar o treinamento a uma escala operacionalmente inviável.) Tj
+T*
+() Tj
+T*
+(Este relatório é mais completo do que a documentação anterior porque não apenas descreve) Tj
+T*
+(as mudanças de código e os artefatos gerados, mas também situa o experimento atual) Tj
+T*
+(dentro da trajetória de adaptação do projeto, compara quantitativamente os resultados) Tj
+T*
+(com o baseline anterior e explicita as implicações metodológicas de cada decisão de) Tj
+T*
+(configuração.) Tj
+T*
+() Tj
+T*
+(2. Contexto, Motivação e Histórico da Adaptação) Tj
+T*
+() Tj
+T*
+(A trilha de Wi-Fi do repositório não havia sido inicialmente projetada para processar um) Tj
+T*
+(CSV massivo de fluxos de rede. A implementação original dependia de dois pequenos) Tj
+T*
+(arquivos demonstrativos e de um conjunto simplificado de atributos. Isso foi adequado) Tj
+T*
+(apenas enquanto o objetivo era demonstrativo.) Tj
+T*
+() Tj
+T*
+(A primeira grande adaptação tornou o pipeline capaz de ingerir o) Tj
+T*
+(arquivoThuesday-20-02-2018_TrafficForML_CICFlowMeter.csvdiretamente dedata/wifi/raw/. Em) Tj
+T*
+(seguida, foram introduzidos controles de cap para permitir experimentação progressiva. O) Tj
+T*
+(experimento de 250 mil logs e 2 clientes validou a funcionalidade geral do pipeline, mas) Tj
+T*
+(ainda representava um cenário pequeno. A tentativa subsequente com o dataset completo) Tj
+T*
+(mostrou que treinar com todos os dados e todas as épocas tornaria o custo temporal) Tj
+T*
+(excessivo.) Tj
+T*
+() Tj
+T*
+(O cenário de 700 mil logs e 50 clientes nasce justamente dessa transição: ele mantém o) Tj
+T*
+(pipeline real, usa o dataset original sem adulterá-lo, aumenta o número de clientes e) Tj
+T*
+(amplia o volume de dados em relação ao primeiro experimento, mas faz isso dentro de um) Tj
+T*
+(orçamento de tempo claramente mais controlado.) Tj
+T*
+() Tj
+T*
+(3. Dataset Utilizado e Estratégia de Armazenamento) Tj
+T*
+() Tj
+T*
+(O dataset utilizado é o arquivoThuesday-20-02-2018_TrafficForML_CICFlowMeter.csv,) Tj
+T*
+(pertencente à base CIC-IDS2018. O arquivo bruto foi mantido emdata/wifi/raw/, enquanto) Tj
+T*
+(todos os artefatos derivados ficaram emdata/wifi/processed/. Essa separação preserva) Tj
+T*
+(reprodutibilidade, evita alterações acidentais sobre o dado original e facilita refazer) Tj
+T*
+(o experimento com diferentes configurações.) Tj
+T*
+() Tj
+T*
+(A estrutura final do trabalho manteve o dado bruto como fonte imutável e tratou o) Tj
+T*
+(conjunto processado como artefato descartável e recriável. Isso foi importante porque ao) Tj
+T*
+(longo do projeto houve múltiplas iterações de configuração, incluindo o experimento) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 3339 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(anterior, a tentativa full dataset e o experimento 700k + 50 clientes.) Tj
+T*
+(Dimensões observadas no servidor.Dados brutos: 3.8G) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/data/wifi/rawDados processados: 1001M) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/data/wifi/processedResultados do) Tj
+T*
+(experimento atual: 475M) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday_700k) Tj
+T*
+() Tj
+T*
+(4. Mudanças Estruturais no Código) Tj
+T*
+() Tj
+T*
+(O experimento atual reaproveita as mudanças estruturais já incorporadas ao projeto.) Tj
+T*
+(Essas mudanças incluem a refatoração completa do processador de dados, a introdução de) Tj
+T*
+(um arquivo de configuração específico para Wi-Fi/CIC-IDS2018, o uso de paralelismo) Tj
+T*
+(controlado entre GPUs, a parametrização conservadora do DataLoader e a reescrita da) Tj
+T*
+(avaliação para inferência em lotes.) Tj
+T*
+() Tj
+T*
+(O arquivosrc/data_processing/wifi_processor.pypassou a ler um único CSV real, normalizar) Tj
+T*
+(os rótulos, preservar metadados importantes e construir o campoContentsomente depois da) Tj
+T*
+(aplicação dos caps. Essa última alteração reduziu drasticamente trabalho desnecessário) Tj
+T*
+(no preprocessamento.) Tj
+T*
+() Tj
+T*
+(O arquivosrc/federated_learning/client.pypassou a aceitar tanto treinos por número fixo) Tj
+T*
+(de passos quanto treinos dirigidos por época. Para o experimento atual, optou-se) Tj
+T*
+(pormax_steps = 20por cliente selecionado em cada rodada, o que limita o custo de) Tj
+T*
+(execução.) Tj
+T*
+() Tj
+T*
+(O arquivosrc/federated_learning/server.pyjá suportava paralelismo, mas foi configurado e) Tj
+T*
+(refinado para respeitar limites explícitos de GPU. Já o) Tj
+T*
+(arquivosrc/evaluation/evaluator.pypassou a trabalhar em lotes, tornando a avaliação de) Tj
+T*
+(140 mil fluxos por rodada viável em tempo razoável.) Tj
+T*
+() Tj
+T*
+(5. Configuração Final do Experimento 700k + 50 Clientes) Tj
+T*
+() Tj
+T*
+(A configuração final procurou refletir três objetivos simultâneos: aumentar o tamanho do) Tj
+T*
+(experimento, introduzir número maior de clientes e manter tempo de execução aceitável.) Tj
+T*
+(Para isso, o conjunto processado foi limitado a 700 mil logs no total, preservando a) Tj
+T*
+(lógica de treino benign-only do projeto.) Tj
+T*
+() Tj
+T*
+(Os 560 mil logs de treino foram distribuídos IID entre 50 clientes, produzindo 11.200) Tj
+T*
+(exemplos benignos por cliente. Em cada rodada, 20% dos clientes são selecionados, o que) Tj
+T*
+(resulta em 10 clientes participantes. Como o servidor dispõe de duas GPUs, esses 10) Tj
+T*
+(clientes são processados em 5 batches de 2 clientes.) Tj
+T*
+() Tj
+T*
+(| Item | Valor) Tj
+T*
+(| Logs totais do experimento | 700.000) Tj
+T*
+(| Treino benigno | 560.000) Tj
+T*
+(| Teste benigno | 70.000) Tj
+T*
+(| Teste anômalo | 70.000) Tj
+T*
+(| Clientes totais | 50) Tj
+T*
+(| Fração de clientes por rodada | 0,2) Tj
+T*
+(| Clientes selecionados por rodada | 10) Tj
+T*
+(| Batches de clientes por rodada | 5 batches de 2 clientes) Tj
+T*
+(| Amostras de treino por cliente | 11.200) Tj
+T*
+(| Rodadas federadas | 5) Tj
+T*
+(| Passos máximos por cliente/rodada | 20) Tj
+T*
+(| Tempo total de treino observado | 09m 27s) Tj
+T*
+(| Tempo médio por rodada | 01m 53s) Tj
+T*
+(| Tempo típico de treino por cliente | ~15,2s a ~15,7s) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Length 1545 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(| Cliente | Amostras) Tj
+T*
+(| 0 | 11200) Tj
+T*
+(| 1 | 11200) Tj
+T*
+(| 2 | 11200) Tj
+T*
+(| 3 | 11200) Tj
+T*
+(| 4 | 11200) Tj
+T*
+(| 5 | 11200) Tj
+T*
+(| 6 | 11200) Tj
+T*
+(| 7 | 11200) Tj
+T*
+(| 8 | 11200) Tj
+T*
+(| 9 | 11200) Tj
+T*
+(| 10 | 11200) Tj
+T*
+(| 11 | 11200) Tj
+T*
+(| 12 | 11200) Tj
+T*
+(| 13 | 11200) Tj
+T*
+(| 14 | 11200) Tj
+T*
+(| 15 | 11200) Tj
+T*
+(| 16 | 11200) Tj
+T*
+(| 17 | 11200) Tj
+T*
+(| 18 | 11200) Tj
+T*
+(| 19 | 11200) Tj
+T*
+(| 20 | 11200) Tj
+T*
+(| 21 | 11200) Tj
+T*
+(| 22 | 11200) Tj
+T*
+(| 23 | 11200) Tj
+T*
+(| 24 | 11200) Tj
+T*
+(| 25 | 11200) Tj
+T*
+(| 26 | 11200) Tj
+T*
+(| 27 | 11200) Tj
+T*
+(| 28 | 11200) Tj
+T*
+(| 29 | 11200) Tj
+T*
+(| 30 | 11200) Tj
+T*
+(| 31 | 11200) Tj
+T*
+(| 32 | 11200) Tj
+T*
+(| 33 | 11200) Tj
+T*
+(| 34 | 11200) Tj
+T*
+(| 35 | 11200) Tj
+T*
+(| 36 | 11200) Tj
+T*
+(| 37 | 11200) Tj
+T*
+(| 38 | 11200) Tj
+T*
+(| 39 | 11200) Tj
+T*
+(| 40 | 11200) Tj
+T*
+(| 41 | 11200) Tj
+T*
+(| 42 | 11200) Tj
+T*
+(| 43 | 11200) Tj
+T*
+(| 44 | 11200) Tj
+T*
+(| 45 | 11200) Tj
+T*
+(| 46 | 11200) Tj
+T*
+(| 47 | 11200) Tj
+T*
+(| 48 | 11200) Tj
+T*
+(| 49 | 11200) Tj
+T*
+(Observação metodológica importante.Embora o experimento use 560 mil exemplos benignos no) Tj
+T*
+(pool de treino, cada cliente selecionado executa apenas 20 passos por rodada. Portanto,) Tj
+T*
+(o cenário atual não percorre integralmente todo o shard local em cada rodada; ele usa um) Tj
+T*
+(orçamento de passos controlado para manter viabilidade computacional.) Tj
+T*
+() Tj
+T*
+(6. Como o Cenário com 50 Clientes Funciona na Prática) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 3274 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(Comnum_clients = 50eclient_frac = 0.2, a seleção por rodada é calculada comoint\(50 *) Tj
+T*
+(0.2\) = 10. Essa lógica decorre diretamente da implementação do servidor federado.) Tj
+T*
+() Tj
+T*
+(Como o servidor possui apenas 2 GPUs, esses 10 clientes não são executados todos) Tj
+T*
+(simultaneamente. Eles são quebrados em 5 batches sequenciais por rodada, cada batch) Tj
+T*
+(contendo 2 clientes treinando em paralelo, um em cada GPU. Esse comportamento foi) Tj
+T*
+(efetivamente observado nos logs, que mostraram sequências do tipoProcessing client batch) Tj
+T*
+(1/5até5/5.) Tj
+T*
+() Tj
+T*
+(7. Execução Observada e Comportamento Temporal) Tj
+T*
+() Tj
+T*
+(O treino completo terminou em 09m27s, com média de 01m53s por rodada. Cada batch de) Tj
+T*
+(clientes levou aproximadamente 15 segundos para concluir seus 20 passos, o que é) Tj
+T*
+(coerente com o tempo global observado por rodada.) Tj
+T*
+() Tj
+T*
+(Esse resultado é importante porque mostra que o aumento do número de clientes não) Tj
+T*
+(inviabilizou o experimento. Ao contrário, com um orçamento controlado de passos por) Tj
+T*
+(cliente, foi possível escalar de 2 para 50 clientes mantendo a execução em um intervalo) Tj
+T*
+(de tempo muito razoável para pesquisa iterativa.) Tj
+T*
+() Tj
+T*
+(Em seguida, a avaliação percorreu as 5 rodadas e processou o conjunto de teste completo) Tj
+T*
+(de 140 mil fluxos em cada checkpoint. A fase de avaliação foi concluída com sucesso e) Tj
+T*
+(gerou os arquivosf1_scores.csv,temporal_metrics.csvecommunication_metrics.csv.) Tj
+T*
+() Tj
+T*
+(8. Resultados Quantitativos do Experimento Atual) Tj
+T*
+() Tj
+T*
+(8.1 Melhores resultados por valor de K) Tj
+T*
+() Tj
+T*
+(| K | Melhor Rodada | Limiar | F1 | Precisão | Revocação | FPR Benigna) Tj
+T*
+(| 1 | 3 | 0.90 | 0.6962 | 0.5367 | 0.9906 | 0.8551) Tj
+T*
+(| 5 | 5 | 0.97 | 0.6754 | 0.5156 | 0.9790 | 0.9198) Tj
+T*
+() Tj
+T*
+(8.2 Resultados completos por rodada) Tj
+T*
+() Tj
+T*
+(| Rodada | K | Limiar | F1 | Precisão | Revocação | FPR Benigna) Tj
+T*
+(| 1 | 1 | 0.78 | 0.6723 | 0.5071 | 0.9972 | 0.9691) Tj
+T*
+(| 1 | 5 | 0.93 | 0.6712 | 0.5064 | 0.9950 | 0.9699) Tj
+T*
+(| 2 | 1 | 0.89 | 0.6906 | 0.5298 | 0.9917 | 0.8801) Tj
+T*
+(| 2 | 5 | 0.98 | 0.6722 | 0.5074 | 0.9952 | 0.9660) Tj
+T*
+(| 3 | 1 | 0.90 | 0.6962 | 0.5367 | 0.9906 | 0.8551) Tj
+T*
+(| 3 | 5 | 0.98 | 0.6751 | 0.5109 | 0.9946 | 0.9520) Tj
+T*
+(| 4 | 1 | 0.91 | 0.6960 | 0.5361 | 0.9921 | 0.8586) Tj
+T*
+(| 4 | 5 | 0.97 | 0.6754 | 0.5160 | 0.9774 | 0.9170) Tj
+T*
+(| 5 | 1 | 0.92 | 0.6961 | 0.5353 | 0.9950 | 0.8638) Tj
+T*
+(| 5 | 5 | 0.97 | 0.6754 | 0.5156 | 0.9790 | 0.9198) Tj
+T*
+() Tj
+T*
+(8.3 Métricas temporais) Tj
+T*
+() Tj
+T*
+(| Rodada | K | TTD Médio \(s\) | TTD Mediano \(s\) | Cobertura | FPR Benigna | Dispositivos Atacados) Tj
+T*
+(| 1 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.9691 | 10) Tj
+T*
+(| 1 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9699 | 10) Tj
+T*
+(| 2 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8801 | 10) Tj
+T*
+(| 2 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9660 | 10) Tj
+T*
+(| 3 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8551 | 10) Tj
+T*
+(| 3 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9520 | 10) Tj
+T*
+(| 4 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8586 | 10) Tj
+T*
+(| 4 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9170 | 10) Tj
+T*
+(| 5 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8638 | 10) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 3531 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(| 5 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9198 | 10) Tj
+T*
+() Tj
+T*
+(8.4 Métricas de comunicação) Tj
+T*
+() Tj
+T*
+(| Rodada | Clientes Selecionados | Bytes Totais | Bytes Médios/Cliente | Parâmetros Totais | Agregação) Tj
+T*
+(| 1 | 10 | 18432000 | 1843200.0 | 4608000 | FedAvg) Tj
+T*
+(| 2 | 10 | 18432000 | 1843200.0 | 4608000 | FedAvg) Tj
+T*
+(| 3 | 10 | 18432000 | 1843200.0 | 4608000 | FedAvg) Tj
+T*
+(| 4 | 10 | 18432000 | 1843200.0 | 4608000 | FedAvg) Tj
+T*
+(| 5 | 10 | 18432000 | 1843200.0 | 4608000 | FedAvg) Tj
+T*
+() Tj
+T*
+(9. Comparação com o Experimento Anterior \(250k / 2 clientes\)) Tj
+T*
+() Tj
+T*
+(Uma vantagem desta documentação é situar o experimento atual em relação ao baseline) Tj
+T*
+(anteriormente executado com 250 mil logs e 2 clientes. Essa comparação é relevante) Tj
+T*
+(porque mostra que o aumento do volume de dados e do número de clientes não apenas) Tj
+T*
+(permaneceu viável, mas também trouxe uma pequena melhoria quantitativa nas métricas) Tj
+T*
+(centrais.) Tj
+T*
+() Tj
+T*
+(No baseline anterior, o melhor ponto paraK=1foi obtido na rodada 2, comF1 = 0.6949eFPR) Tj
+T*
+(Benigna = 0.8604. No experimento atual, o melhor ponto surgiu na rodada 3, comF1 =) Tj
+T*
+(0.6962eFPR Benigna = 0.8551.) Tj
+T*
+() Tj
+T*
+(| Cenário | Melhor Rodada | F1 | Precisão | Revocação | FPR Benigna) Tj
+T*
+(| Experimento anterior \(250k / 2 clientes\) | 2 | 0.6949 | 0.5352 | 0.9907 | 0.8604) Tj
+T*
+(| Experimento atual \(700k / 50 clientes\) | 3 | 0.6962 | 0.5367 | 0.9906 | 0.8551) Tj
+T*
+(| Delta \(atual - anterior\) | - | 0.0013 | 0.0015 | -0.0001 | -0.0054) Tj
+T*
+() Tj
+T*
+(Em termos absolutos, o ganho foi modesto, mas real:delta de F1 = 0.0013edelta de FPR) Tj
+T*
+(Benigna = -0.0054. Como a FPR diminuiu, esse delta negativo é positivo do ponto de vista) Tj
+T*
+(operacional.) Tj
+T*
+() Tj
+T*
+(10. Interpretação dos Resultados) Tj
+T*
+() Tj
+T*
+(O melhor resultado do experimento atual ocorreu emK=1na rodada 3, comF1 = 0.6962. Isso) Tj
+T*
+(indica que o modelo está efetivamente aprendendo um sinal útil de separação entre) Tj
+T*
+(tráfego benigno e tráfego anômalo. A precisão ficou em torno de 0.5367, enquanto a) Tj
+T*
+(revocação permaneceu extremamente alta, em 0.9906.) Tj
+T*
+() Tj
+T*
+(Essa combinação revela um padrão já visto em experimentos anteriores: o modelo quase não) Tj
+T*
+(perde anomalias, mas continua classificando benignos demais como suspeitos. Em outras) Tj
+T*
+(palavras, o sistema se mostra sensível, porém ainda pouco específico.) Tj
+T*
+() Tj
+T*
+(O fato de a melhor rodada ter surgido em torno da rodada 3, com estabilidade nas rodadas) Tj
+T*
+(4 e 5, sugere que o processo convergiu rapidamente. Isso reforça a escolha de manter 5) Tj
+T*
+(rodadas, já que aumentá-las substancialmente provavelmente geraria custo adicional maior) Tj
+T*
+(do que o benefício incremental em desempenho.) Tj
+T*
+() Tj
+T*
+(11. Limitações e Considerações Metodológicas) Tj
+T*
+() Tj
+T*
+(- O treino permanece benign-only, coerente com a proposta do projeto, mas isso limita) Tj
+T*
+(  comparações com abordagens supervisionadas.) Tj
+T*
+(- O uso demax_steps = 20por cliente/rodada reduz custo, mas também significa que cada) Tj
+T*
+(  cliente não percorre todo seu shard local a cada rodada.) Tj
+T*
+(- O limiar é selecionado com base emf1_max, estratégia útil para análise experimental,) Tj
+T*
+(  mas não necessariamente ideal para um detector operacional.) Tj
+T*
+(- Ainda que o conjunto total seja maior do que o baseline anterior, ele continua sendo) Tj
+T*
+(  um recorte controlado do dataset bruto.) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 2785 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(- A FPR benigna continua alta, o que indica necessidade de calibração adicional antes de) Tj
+T*
+(  qualquer uso operacional.) Tj
+T*
+() Tj
+T*
+(12. Conclusão) Tj
+T*
+() Tj
+T*
+(O experimento com 700 mil logs e 50 clientes representa, até o momento, o melhor) Tj
+T*
+(compromisso entre realismo federado, custo computacional e capacidade de experimentação) Tj
+T*
+(no contexto deste projeto. Ele se mostrou mais completo e informativo do que o cenário) Tj
+T*
+(anterior, sem herdar a inviabilidade temporal da tentativa full dataset.) Tj
+T*
+() Tj
+T*
+(A execução foi estável, os resultados ficaram consistentes entre rodadas e houve leve) Tj
+T*
+(melhora sobre o baseline anterior. O sistema continua apresentando alta sensibilidade e) Tj
+T*
+(FPR benigna elevada, o que deixa claro que a próxima fronteira de melhoria não é apenas) Tj
+T*
+(escalar o volume de dados, mas calibrar melhor o critério de decisão.) Tj
+T*
+() Tj
+T*
+(Como base para documentação, esse experimento fornece um retrato mais fiel do estado) Tj
+T*
+(atual do projeto: código adaptado para dados reais, pipeline federado funcional,) Tj
+T*
+(execução multi-GPU controlada, cenário com 50 clientes e métricas suficientemente ricas) Tj
+T*
+(para orientar os próximos passos científicos.) Tj
+T*
+() Tj
+T*
+(Apêndice A. Inventário de Arquivos) Tj
+T*
+() Tj
+T*
+(FL_RANSOM_LLM/) Tj
+T*
+(??? configs/config_wifi.yaml) Tj
+T*
+(??? data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv) Tj
+T*
+(??? data/wifi/processed/train.csv) Tj
+T*
+(??? data/wifi/processed/test.csv) Tj
+T*
+(??? data/wifi/processed/tokenized/) Tj
+T*
+(??? results/WiFi_CICIDS2018_Tuesday/) Tj
+T*
+(??? results/WiFi_CICIDS2018_Tuesday_700k/) Tj
+T*
+(?   ??? client_data/client_data_metadata.json) Tj
+T*
+(?   ??? communication_metrics.csv) Tj
+T*
+(?   ??? f1_scores.csv) Tj
+T*
+(?   ??? temporal_metrics.csv) Tj
+T*
+(?   ??? round_0 ... round_5/) Tj
+T*
+(??? src/data_processing/wifi_processor.py) Tj
+T*
+(??? src/federated_learning/client.py) Tj
+T*
+(??? src/federated_learning/server.py) Tj
+T*
+(??? src/evaluation/evaluator.py) Tj
+T*
+(??? docs/) Tj
+T*
+(    ??? generate_wifi_report.py) Tj
+T*
+(    ??? generate_wifi_report_academic_ptbr.py) Tj
+T*
+(    ??? generate_wifi_report_700k_50clients_ptbr.py) Tj
+T*
+(    ??? Relatorio_Academico_WiFi_700k_50clientes.pdf) Tj
+T*
+() Tj
+T*
+(Apêndice B. Configuração Completa do Experimento Atual) Tj
+T*
+() Tj
+T*
+(simulation_name: "WiFi_CICIDS2018_Tuesday_700k") Tj
+T*
+() Tj
+T*
+(dataset_name: "wifi") Tj
+T*
+(description: "WiFi/network-flow anomaly detection using the CIC-IDS2018 Tuesday flow) Tj
+T*
+(CSV.") Tj
+T*
+() Tj
+T*
+(data_base_path: "./data/") Tj
+T*
+(results_path: "./results/") Tj
+T*
+() Tj
+T*
+(# Raw dataset placement:) Tj
+T*
+(#   data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 1859 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(raw_csv_file: "Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv") Tj
+T*
+(label_column: "Label") Tj
+T*
+(normal_label_values: ["Benign"]) Tj
+T*
+() Tj
+T*
+(# Flow-to-text conversion:) Tj
+T*
+(# The processor will use whichever of these columns are actually present in the CSV.) Tj
+T*
+(wifi_content_columns:) Tj
+T*
+(  - "Protocol") Tj
+T*
+(  - "Flow Duration") Tj
+T*
+(  - "Tot Fwd Pkts") Tj
+T*
+(  - "Tot Bwd Pkts") Tj
+T*
+(  - "TotLen Fwd Pkts") Tj
+T*
+(  - "TotLen Bwd Pkts") Tj
+T*
+(  - "Flow Byts/s") Tj
+T*
+(  - "Flow Bytes/s") Tj
+T*
+(  - "Flow Pkts/s") Tj
+T*
+(  - "Flow IAT Mean") Tj
+T*
+(  - "Fwd IAT Mean") Tj
+T*
+(  - "Bwd IAT Mean") Tj
+T*
+(  - "Pkt Len Mean") Tj
+T*
+(  - "Pkt Len Var") Tj
+T*
+(  - "SYN Flag Cnt") Tj
+T*
+(  - "ACK Flag Cnt") Tj
+T*
+(  - "PSH Flag Cnt") Tj
+T*
+() Tj
+T*
+(# Split strategy:) Tj
+T*
+(# Only benign traffic is used for training.) Tj
+T*
+(train_benign_fraction: 0.8) Tj
+T*
+(benign_calibration_fraction: 0.0) Tj
+T*
+(random_seed: 42) Tj
+T*
+(test_balance: false) Tj
+T*
+() Tj
+T*
+(# Controlled-run controls:) Tj
+T*
+(# Total target for this experiment: ~700k logs) Tj
+T*
+(# - 560k benign logs for training) Tj
+T*
+(# - 70k benign logs for test) Tj
+T*
+(# - 70k anomalous logs for test) Tj
+T*
+(# This preserves the anomaly-detection logic of the project:) Tj
+T*
+(# training remains benign-only, and the test set mixes benign + anomaly.) Tj
+T*
+(raw_nrows: null) Tj
+T*
+(benign_train_cap: 560000) Tj
+T*
+(calibration_benign_cap: null) Tj
+T*
+(test_benign_cap: 70000) Tj
+T*
+(test_anomaly_cap: 70000) Tj
+T*
+() Tj
+T*
+(model_name: "HuggingFaceTB/SmolLM-135M") Tj
+T*
+() Tj
+T*
+(lora: true) Tj
+T*
+(lora_rank: 8) Tj
+T*
+(lora_alpha_multiplier: 2) Tj
+T*
+(lora_dropout: 0.05) Tj
+T*
+() Tj
+T*
+(use_parallel_training: true) Tj
+T*
+(max_parallel_gpus: 2) Tj
+T*
+() Tj
+T*
+(num_rounds: 5) Tj
+T*
+(num_clients: 50) Tj
+T*
+(client_frac: 0.2) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Length 2692 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+() Tj
+T*
+(# Training policy for the 700k experiment:) Tj
+T*
+(# - max_steps remains capped for practicality.) Tj
+T*
+(# - Each selected client still trains for a controlled number of steps per round.) Tj
+T*
+(max_steps: 20) Tj
+T*
+(num_train_epochs: 1) Tj
+T*
+(logging_steps: 100) Tj
+T*
+(batch_size: 2) Tj
+T*
+(dataloader_num_workers: 4) Tj
+T*
+(dataloader_pin_memory: true) Tj
+T*
+(dataloader_persistent_workers: true) Tj
+T*
+(initial_lr: 0.001) Tj
+T*
+(lr_scheduler_type: "constant") Tj
+T*
+(warmup_steps: 0) Tj
+T*
+() Tj
+T*
+(force_reprocess_data: true) Tj
+T*
+(evaluator_version: "new") Tj
+T*
+(eval_batch_size: 4) Tj
+T*
+(eval_use_autocast: true) Tj
+T*
+(eval_torch_dtype: "float16") Tj
+T*
+() Tj
+T*
+(top_k_values: [1, 5]) Tj
+T*
+(threshold_metric: "top1") Tj
+T*
+(threshold_strategy: "f1_max") Tj
+T*
+(f1_threshold_steps: 101) Tj
+T*
+() Tj
+T*
+(Apêndice C. Comandos de Reprodução) Tj
+T*
+() Tj
+T*
+(cd ~/Artigo-LANC-Thiago/FL_RANSOM_LLM\\nsource venv/bin/activate\\nrm -rf) Tj
+T*
+(results/WiFi_CICIDS2018_Tuesday_700k\\nrm -rf data/wifi/processed/*\\npython main.py) Tj
+T*
+(--config configs/config_wifi.yaml) Tj
+T*
+() Tj
+T*
+(Apêndice D. Evidências do Ambiente de Execução) Tj
+T*
+() Tj
+T*
+(avancos\\nLinux avancos 6.17.0-19-generic #19-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar  6) Tj
+T*
+(14:02:58 UTC 2026 x86_64 GNU/Linux) Tj
+T*
+() Tj
+T*
+(Architecture:                            x86_64) Tj
+T*
+(CPU op-mode\(s\):                          32-bit, 64-bit) Tj
+T*
+(Address sizes:                           46 bits physical, 48 bits virtual) Tj
+T*
+(Byte Order:                              Little Endian) Tj
+T*
+(CPU\(s\):                                  32) Tj
+T*
+(On-line CPU\(s\) list:                     0-31) Tj
+T*
+(Vendor ID:                               GenuineIntel) Tj
+T*
+(Model name:                              13th Gen Intel\(R\) Core\(TM\) i9-13900K) Tj
+T*
+(CPU family:                              6) Tj
+T*
+(Model:                                   183) Tj
+T*
+(Thread\(s\) per core:                      2) Tj
+T*
+(Core\(s\) per socket:                      24) Tj
+T*
+(Socket\(s\):                               1) Tj
+T*
+(Stepping:                                1) Tj
+T*
+(CPU\(s\) scaling MHz:                      88%) Tj
+T*
+(CPU max MHz:                             5400.0000) Tj
+T*
+(CPU min MHz:                             800.0000) Tj
+T*
+(BogoMIPS:                                5990.40) Tj
+T*
+(Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep) Tj
+T*
+(mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx) Tj
+T*
+(pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Length 3579 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx) Tj
+T*
+(est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt) Tj
+T*
+(tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb) Tj
+T*
+(ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase) Tj
+T*
+(tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt) Tj
+T*
+(sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida) Tj
+T*
+(arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke) Tj
+T*
+(waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize pconfig) Tj
+T*
+(arch_lbr ibt flush_l1d arch_capabilities) Tj
+T*
+(Virtualization:                          VT-x) Tj
+T*
+(L1d cache:                               896 KiB \(24 instances\)) Tj
+T*
+(L1i cache:                               1.3 MiB \(24 instances\)) Tj
+T*
+(L2 cache:                                32 MiB \(12 instances\)) Tj
+T*
+(L3 cache:                                36 MiB \(1 instance\)) Tj
+T*
+(NUMA node\(s\):                            1) Tj
+T*
+(NUMA node0 CPU\(s\):                       0-31) Tj
+T*
+(Vulnerability Gather data sampling:      Not affected) Tj
+T*
+(Vulnerability Ghostwrite:                Not affected) Tj
+T*
+(Vulnerability Indirect target selection: Not affected) Tj
+T*
+(Vulnerability Itlb multihit:             Not affected) Tj
+T*
+(Vulnerability L1tf:                      Not affected) Tj
+T*
+(Vulnerability Mds:                       Not affected) Tj
+T*
+(Vulnerability Meltdown:                  Not affected) Tj
+T*
+(Vulnerability Mmio stale data:           Not affected) Tj
+T*
+(Vulnerability Old microcode:             Not affected) Tj
+T*
+(Vulnerability Reg file data sampling:    Mitigation; Clear Register File) Tj
+T*
+(Vulnerability Retbleed:                  Not affected) Tj
+T*
+(Vulnerability Spec rstack overflow:      Not affected) Tj
+T*
+(Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled) Tj
+T*
+(via prctl) Tj
+T*
+(Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user) Tj
+T*
+(pointer sanitization) Tj
+T*
+(Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB) Tj
+T*
+(conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S) Tj
+T*
+(Vulnerability Srbds:                     Not affected) Tj
+T*
+(Vulnerability Tsa:                       Not affected) Tj
+T*
+(Vulnerability Tsx async abort:           Not affected) Tj
+T*
+(Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace) Tj
+T*
+() Tj
+T*
+(total        used        free      shared  buff/cache   available) Tj
+T*
+(Mem:           123Gi        53Gi       9.1Gi        56Mi        61Gi        69Gi) Tj
+T*
+(Swap:           30Gi       452Ki        30Gi) Tj
+T*
+() Tj
+T*
+(Apêndice E. Localização dos Arquivos Gerados) Tj
+T*
+() Tj
+T*
+(HTML:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/docs/Relatorio_Academico_WiFi_700k_50clientes.html\\nPDF:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/docs/Relatorio_Academico_WiFi_700k_50clientes.pdf\\nResultados) Tj
+T*
+(atuais:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday_700k\\nResultados) Tj
+T*
+(baseline:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday\\nConfig:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/configs/config_wifi.yaml) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Type /Pages /Kids [13 0 R 14 0 R 15 0 R 16 0 R 17 0 R 18 0 R 19 0 R 20 0 R 21 0 R 22 0 R] /Count 10 >>
+endobj
+13 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+14 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 3 0 R >>
+endobj
+15 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+16 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 5 0 R >>
+endobj
+17 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+18 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 7 0 R >>
+endobj
+19 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+20 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 9 0 R >>
+endobj
+21 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+22 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 11 0 R >>
+endobj
+23 0 obj
+<< /Type /Catalog /Pages 12 0 R >>
+endobj
+xref
+0 24
+0000000000 65535 f 
+0000000015 00000 n 
+0000000083 00000 n 
+0000004322 00000 n 
+0000008351 00000 n 
+0000011742 00000 n 
+0000013339 00000 n 
+0000016665 00000 n 
+0000020248 00000 n 
+0000023085 00000 n 
+0000024996 00000 n 
+0000027741 00000 n 
+0000031373 00000 n 
+0000031496 00000 n 
+0000031624 00000 n 
+0000031752 00000 n 
+0000031880 00000 n 
+0000032008 00000 n 
+0000032136 00000 n 
+0000032264 00000 n 
+0000032392 00000 n 
+0000032520 00000 n 
+0000032649 00000 n 
+0000032778 00000 n 
+trailer
+<< /Size 24 /Root 23 0 R >>
+startxref
+32829
+%%EOF

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Relatório Acadêmico - CIC-IDS2018 Tuesday no FL_NETWORK_FLOW_LLM</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 1.8cm;
+    }
+    body {
+      font-family: "Liberation Serif", "DejaVu Serif", serif;
+      color: #111827;
+      line-height: 1.5;
+      font-size: 11pt;
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+      margin-top: 1.1em;
+      margin-bottom: 0.45em;
+    }
+    h1 {
+      font-size: 22pt;
+      border-bottom: 2px solid #1e293b;
+      padding-bottom: 8px;
+    }
+    h2 {
+      font-size: 16pt;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13pt;
+    }
+    p {
+      margin: 0.45em 0;
+      text-align: justify;
+    }
+    ul {
+      margin: 0.35em 0 0.65em 1.25em;
+    }
+    li {
+      margin: 0.18em 0;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 0.12em 0.25em;
+      border-radius: 3px;
+      font-family: "Liberation Mono", monospace;
+      font-size: 10pt;
+    }
+    pre {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 10px;
+      white-space: pre-wrap;
+      font-family: "Liberation Mono", monospace;
+      font-size: 9.3pt;
+      line-height: 1.35;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.6em 0 1em 0;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    th {
+      background: #e2e8f0;
+      text-align: left;
+    }
+    .capa {
+      min-height: 720px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      page-break-after: always;
+    }
+    .capa h1 {
+      border: none;
+      font-size: 24pt;
+      margin-top: 2.5cm;
+    }
+    .capa .subtitle {
+      font-size: 14pt;
+      line-height: 1.6;
+    }
+    .capa .meta {
+      font-size: 12pt;
+      line-height: 1.7;
+      margin-bottom: 1.5cm;
+    }
+    .toc {
+      background: #f8fafc;
+      border-left: 4px solid #2563eb;
+      padding: 10px 12px;
+    }
+    .ok {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      padding: 10px 12px;
+      margin: 0.8em 0;
+    }
+    .warn {
+      background: #fff7ed;
+      border-left: 4px solid #ea580c;
+      padding: 10px 12px;
+      margin: 0.8em 0;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+  <div class="capa">
+    <div></div>
+    <div>
+      <h1>Relatório Acadêmico</h1>
+      <div class="subtitle">
+        Adaptação do Pipeline <code>FL_NETWORK_FLOW_LLM</code> para o Dataset<br />
+        <code>CIC-IDS2018 - Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code>
+      </div>
+    </div>
+    <div class="meta">
+      <div><strong>Projeto:</strong> <code>FL_NETWORK_FLOW_LLM</code></div>
+      <div><strong>Experimento:</strong> <code>WiFi_CICIDS2018_Tuesday</code></div>
+      <div><strong>Data de geração:</strong> 26/03/2026</div>
+      <div><strong>Raiz do projeto:</strong> <code>/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM</code></div>
+    </div>
+  </div>
+
+  <h2>Resumo</h2>
+  <p>Este relatório documenta, em profundidade, o processo completo de adaptação do repositório <code>FL_NETWORK_FLOW_LLM</code> para uso com o dataset real <code>Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code>, pertencente à coleção CIC-IDS2018. A motivação central do trabalho foi substituir a antiga implementação de Wi-Fi, originalmente baseada em arquivos sintéticos e pequenos CSVs de demonstração, por um pipeline reproduzível capaz de consumir um grande arquivo de fluxos de rede, gerar conjuntos de treino e teste compatíveis com a abordagem de detecção de anomalias do projeto, executar treinamento federado com LoRA e avaliar os checkpoints produzidos.</p>
+<p>A adaptação envolveu alterações na configuração do experimento, refatoração completa do processador de dados, ajustes no servidor federado, inclusão de controles conservadores de DataLoader no cliente e reescrita da avaliação para inferência em lotes. Também foram realizadas decisões de engenharia voltadas ao ambiente de execução real, incluindo limites configuráveis para reduzir o tamanho efetivo do experimento sem modificar o dataset bruto e uso controlado de paralelismo em um servidor compartilhado.</p>
+<p>No experimento final, o arquivo bruto com aproximadamente 3,8 GB foi mantido em <code>data/wifi/raw/</code>, enquanto o conjunto processado foi reduzido para 250.000 fluxos benignos de treino e 250.000 fluxos de teste balanceados entre benignos e anômalos. O melhor resultado observado ocorreu na rodada 2 com <code>K=1</code>, alcançando <code>F1 = {_fmt_float(best_k1['f1_score'])}</code>, <code>Precisão = {_fmt_float(best_k1['precision'])}</code>, <code>Revocação = {_fmt_float(best_k1['recall'])}</code> e <code>FPR Benigna = {_fmt_float(best_k1['benign_fpr'])}</code>. Esses resultados mostram que o pipeline passou a funcionar adequadamente do ponto de vista técnico, ainda que a taxa de falsos positivos permaneça elevada para uso operacional imediato.</p>
+  <p><strong>Palavras-chave:</strong> detecção de anomalias, aprendizado federado, LoRA, modelos de linguagem, CIC-IDS2018, fluxos de rede, otimização de desempenho.</p>
+
+  <h2>Abstract</h2>
+  <p>This report presents a comprehensive academic account of the end-to-end adaptation of the <code>FL_NETWORK_FLOW_LLM</code> repository to a real CIC-IDS2018 network-flow dataset. The work replaced a placeholder Wi-Fi pipeline with a reproducible large-scale CSV ingestion and processing path that supports benign-only training, balanced anomaly evaluation, federated LoRA fine-tuning, and batched checkpoint assessment.</p>
+<p>The implementation involved coordinated changes across configuration, data processing, server orchestration, client training, and evaluation. Special attention was given to performance and resource-awareness because the experiment ran on a shared server equipped with two RTX 4090 GPUs and 32 logical CPUs. The resulting pipeline is substantially more realistic, reproducible, and maintainable than the original placeholder implementation.</p>
+
+  <h2>1. Introdução</h2>
+  <p>O repositório <code>FL_NETWORK_FLOW_LLM</code> foi concebido para explorar detecção de anomalias com apoio de modelos de linguagem em cenários de aprendizado federado. Entretanto, a trilha originalmente associada ao dataset de Wi-Fi não estava preparada para dados reais de larga escala. A implementação anterior dependia de dois arquivos pequenos, <code>benign_wifi.csv</code> e <code>anomaly_wifi.csv</code>, com um conjunto extremamente reduzido de atributos e até mesmo geração de dados sintéticos de contingência. Tal desenho era útil apenas como prova de conceito.</p>
+<p>A necessidade prática deste trabalho surgiu com a adoção do arquivo <code>Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code>, que possui 84 colunas e volume de aproximadamente 3,8 GB. Integrar esse dataset ao pipeline exigiu resolver múltiplos problemas: padronização de caminhos, leitura de um único CSV massivo, seleção de atributos relevantes, conversão do fluxo de rede em representação textual, separação entre treino benigno e teste misto, compatibilidade com o pipeline federado existente e avaliação em escala.</p>
+<p>Além do desafio funcional, havia uma restrição operacional relevante: a execução se dava em um servidor compartilhado por outros alunos. Dessa forma, a solução não poderia simplesmente maximizar o uso de hardware de maneira agressiva. Foi necessário buscar eficiência com responsabilidade, equilibrando tempo de execução, uso de CPU, uso de GPU, pressão de memória e reprodutibilidade experimental.</p>
+
+  <h2>2. Objetivos</h2>
+  <ul>
+    <li>Substituir a antiga implementação fictícia de Wi-Fi por um pipeline compatível com o CSV real do CIC-IDS2018.</li>
+    <li>Organizar o dataset bruto e os artefatos processados segundo boas práticas de reprodutibilidade.</li>
+    <li>Permitir experimentos controlados por meio de limites configuráveis, sem alterar o arquivo bruto original.</li>
+    <li>Preservar a filosofia do projeto: treino apenas com tráfego benigno e detecção de anomalias na avaliação.</li>
+    <li>Melhorar o desempenho do pipeline, sobretudo em preprocessamento e avaliação.</li>
+    <li>Executar um experimento final documentado, com resultados e interpretação técnica.</li>
+  </ul>
+
+  <h2>3. Caracterização do Repositório e do Cenário Inicial</h2>
+  <p>Antes da refatoração, o caminho de processamento para o dataset de Wi-Fi não possuía aderência ao novo conjunto de dados. O código pressupunha duas fontes separadas, uma benigna e outra anômala, e trabalhava com um esquema pequeno de atributos como <code>rssi</code>, <code>snr</code>, <code>latency</code> e <code>throughput</code>. Isso inviabilizava o uso do CSV do CIC-IDS2018, que segue outra estrutura semântica e estatística.</p>
+<p>Outro problema do cenário inicial era a ausência de uma estratégia clara para limitar o tamanho do experimento sem editar o dataset original. Na prática, isso significava que, ao migrar para um arquivo de milhões de linhas, o custo de preprocessamento e avaliação tenderia a crescer rapidamente, dificultando iteração rápida.</p>
+<p>Também se observou que parte do pipeline subutilizava o servidor. A avaliação era majoritariamente serial, o paralelismo entre GPUs não estava ativado na configuração e a fase de treino não utilizava controles de DataLoader ajustados ao ambiente compartilhado.</p>
+
+  <h2>4. Dataset Utilizado e Estratégia de Armazenamento</h2>
+  <p>O dataset integrado ao projeto foi o arquivo <code>Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code>, pertencente à base CIC-IDS2018 processada para algoritmos de aprendizado de máquina. O arquivo foi armazenado em <code>data/wifi/raw/</code>, preservando a política de manter dados brutos imutáveis. Os artefatos derivados, como <code>train.csv</code>, <code>test.csv</code> e o dataset tokenizado, passaram a ser gerados em <code>data/wifi/processed/</code>.</p>
+<p>Essa separação entre <code>raw</code> e <code>processed</code> é fundamental para rastreabilidade experimental. Ela impede que o arquivo original seja sobrescrito por transformações acidentais, reduz o risco de corrupção dos dados e permite repetir o experimento a partir da mesma fonte.</p>
+<p>Na validação inicial do arquivo foram confirmadas 84 colunas e a presença de campos cruciais para a nova lógica, como <code>Label</code>, <code>Timestamp</code>, <code>Src IP</code>, <code>Dst IP</code>, <code>Protocol</code>, <code>Flow Byts/s</code> e <code>Flow Duration</code>. Essa checagem foi importante para confirmar a compatibilidade estrutural do dataset com o novo processador.</p>
+  <div class="ok">
+    <strong>Dimensões finais dos artefatos.</strong><br />
+    Dados brutos: 3.8G	/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/data/wifi/raw<br />
+    Dados processados: 589M	/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/data/wifi/processed<br />
+    Resultados: 226M	/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday
+  </div>
+
+  <h2>5. Metodologia de Adaptação do Pipeline</h2>
+  <p>A adaptação foi conduzida por etapas. Primeiro, definiu-se a estratégia de organização do dataset dentro do repositório. Em seguida, foi refeita a lógica de processamento para ler o CSV único, normalizar rótulos e gerar conjuntos derivados. Depois disso, ajustou-se o pipeline federado para operar de forma consistente com os novos artefatos. Por fim, foram introduzidas otimizações de desempenho visando reduzir tempo de execução e melhor aproveitar os recursos disponíveis.</p>
+<p>Um aspecto metodológico central foi preservar a semântica original do projeto: em vez de migrar para classificação supervisionada tradicional, manteve-se a lógica de detecção de anomalias via modelagem do comportamento benigno. Assim, o conjunto de treino final contém apenas fluxos benignos, enquanto o conjunto de teste mistura benignos e anômalos.</p>
+<p>Outro princípio importante foi evitar alterações destrutivas nos dados de origem. Todos os cortes de experimento, como limites máximos de amostras, foram implementados por configuração, nunca por edição manual do CSV bruto.</p>
+
+  <h2>6. Alterações Implementadas no Código</h2>
+  <h3>6.1 <code>configs/config_wifi.yaml</code></h3>
+  <p>Foi criado e refinado um arquivo de configuração específico para o experimento com o dataset CIC-IDS2018 Tuesday. Esse arquivo passou a declarar explicitamente o nome do CSV bruto, a coluna de rótulo, os valores considerados benignos, as colunas preferenciais usadas na montagem do texto, os limites do experimento, os hiperparâmetros do aprendizado federado e os parâmetros de desempenho.</p>
+<p>Entre os parâmetros mais importantes estão <code>benign_train_cap</code>, <code>test_benign_cap</code> e <code>test_anomaly_cap</code>, responsáveis por limitar o experimento a 250.000 amostras benignas de treino e 250.000 amostras totais de teste; <code>use_parallel_training</code> e <code>max_parallel_gpus</code>, que controlam o paralelismo entre GPUs; e <code>eval_batch_size</code>, <code>eval_use_autocast</code> e <code>eval_torch_dtype</code>, que otimizam a avaliação.</p>
+
+  <h3>6.2 <code>src/data_processing/wifi_processor.py</code></h3>
+  <p>O processador de Wi-Fi foi o componente mais profundamente alterado. A nova versão passou a ler um único CSV de grande porte, identificar a coluna de rótulo configurada, normalizar o campo <code>Label</code> para uma forma binária adequada ao pipeline, preservar a versão original do rótulo em <code>Label_raw</code> e manter metadados relevantes como <code>Flow ID</code>, <code>Src IP</code>, <code>Dst IP</code> e <code>Timestamp</code>.</p>
+<p>Também foi introduzida uma seleção flexível de atributos para a montagem do campo <code>Content</code>. Em vez de assumir cegamente um conjunto fixo de colunas, o código passa a escolher, dentre as colunas preferidas configuradas, apenas aquelas que realmente existem no CSV. Isso tornou o pipeline mais robusto a pequenas variações de esquema.</p>
+<p>Uma otimização particularmente importante foi mover a criação do campo textual <code>Content</code> para depois da aplicação dos limites do experimento. Antes disso, o código construía texto para um volume muito maior de linhas, inclusive para exemplos que seriam descartados mais tarde. Com a nova lógica, o texto só é gerado para o subconjunto efetivamente utilizado na execução.</p>
+  <ul>
+    <li>Suporte a um único CSV bruto real em <code>data/wifi/raw/</code>.</li>
+    <li>Compatibilidade retroativa com os CSVs legados como fallback.</li>
+    <li>Normalização robusta de rótulos benignos e anômalos.</li>
+    <li>Preservação de metadados úteis para avaliação temporal.</li>
+    <li>Aplicação de limites sem modificar o dataset bruto.</li>
+    <li>Sanitização de padrões de IP e MAC no texto final.</li>
+    <li>Geração de <code>train.csv</code>, <code>test.csv</code> e dataset tokenizado.</li>
+  </ul>
+
+  <h3>6.3 <code>src/federated_learning/server.py</code></h3>
+  <p>O servidor federado já possuía um caminho de execução paralela, mas ele não estava sendo usado pelo experimento. A adaptação passou a ativar esse modo via configuração e, além disso, refinou o código para respeitar o parâmetro <code>max_parallel_gpus</code>. Isso permite limitar explicitamente quantas GPUs o servidor pode usar, o que é valioso em um ambiente compartilhado.</p>
+<p>Na prática, isso tornou possível usar as duas RTX 4090 disponíveis sem deixar a lógica dependente apenas da quantidade total de GPUs detectadas pela máquina.</p>
+
+  <h3>6.4 <code>src/federated_learning/client.py</code></h3>
+  <p>No cliente federado foram adicionados controles de DataLoader, com suporte a <code>dataloader_num_workers</code>, <code>dataloader_pin_memory</code> e <code>dataloader_persistent_workers</code>. A configuração final adotou quatro workers por processo, um valor conservador para melhorar a alimentação de dados sem pressionar excessivamente a CPU do servidor.</p>
+<p>A implementação foi feita de forma compatível com diferentes versões do <code>transformers</code>, evitando depender de parâmetros que possam não existir em instalações mais antigas.</p>
+
+  <h3>6.5 <code>src/evaluation/evaluator.py</code></h3>
+  <p>A avaliação recebeu a otimização mais impactante. O comportamento anterior processava uma amostra por vez, em um laço serial. Isso fazia com que a GPU fosse subutilizada e tornava a avaliação de centenas de milhares de fluxos muito lenta.</p>
+<p>A nova implementação passou a fazer tokenização e inferência em lotes, com suporte a autocast em CUDA e carregamento opcional do modelo em meia precisão. Além disso, o código passou a liberar explicitamente objetos de modelo e limpar cache CUDA entre rodadas. O resultado foi uma avaliação muito mais compatível com o volume do experimento.</p>
+
+  <h2>7. Metodologia Experimental</h2>
+  <p>A metodologia final adotou um cenário controlado para equilibrar fidelidade experimental e custo computacional. Todos os fluxos benignos foram embaralhados, separados em parte de treino e holdout benigno, e então limitados por configuração. Os fluxos anômalos também foram limitados por configuração. O conjunto de treino final passou a conter apenas exemplos benignos, enquanto o conjunto de teste foi formado pela união do holdout benigno com a amostra anômala.</p>
+<p>O experimento utilizou dois clientes federados em distribuição IID, cinco rodadas de treinamento, modelo base <code>HuggingFaceTB/SmolLM-135M</code>, adaptação LoRA com rank 8, <code>batch_size = 2</code> e <code>max_steps = 20</code>. O treino foi conduzido com agregação <code>FedAvg</code> e sem termo FedProx adicional.</p>
+  <ul>
+    <li>Treino: 250.000 fluxos benignos.</li>
+    <li>Teste: 125.000 fluxos benignos + 125.000 fluxos anômalos.</li>
+    <li>Clientes: 2, com 125.000 amostras benignas para cada um.</li>
+    <li>Rodadas federadas: 5.</li>
+    <li>Valores de avaliação: <code>K = 1</code> e <code>K = 5</code>.</li>
+  </ul>
+  <table><thead><tr><th>Cliente</th><th>Amostras</th></tr></thead><tbody><tr><td>0</td><td>125000</td></tr>
+<tr><td>1</td><td>125000</td></tr></tbody></table>
+
+  <h2>8. Ambiente Computacional e Restrições do Servidor</h2>
+  <p>O experimento foi executado em um servidor acadêmico compartilhado. Isso impôs uma restrição metodológica importante: qualquer otimização precisava melhorar o desempenho sem provocar saturação desnecessária de CPU, GPU ou memória.</p>
+<p>O monitoramento realizado mostrou que, antes das otimizações, o processo utilizava efetivamente apenas um núcleo de CPU e subaproveitava a segunda GPU. Essas observações orientaram a decisão de ativar paralelismo conservador e melhorar a fase de avaliação.</p>
+  <h3>8.1 Identificação do host</h3>
+  <pre>avancos\nLinux avancos 6.17.0-19-generic #19-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar  6 14:02:58 UTC 2026 x86_64 GNU/Linux</pre>
+  <h3>8.2 CPU e memória</h3>
+  <pre>Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           46 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  32
+On-line CPU(s) list:                     0-31
+Vendor ID:                               GenuineIntel
+Model name:                              13th Gen Intel(R) Core(TM) i9-13900K
+CPU family:                              6
+Model:                                   183
+Thread(s) per core:                      2
+Core(s) per socket:                      24
+Socket(s):                               1
+Stepping:                                1
+CPU(s) scaling MHz:                      62%
+CPU max MHz:                             5400.0000
+CPU min MHz:                             800.0000
+BogoMIPS:                                5990.40
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities
+Virtualization:                          VT-x
+L1d cache:                               896 KiB (24 instances)
+L1i cache:                               1.3 MiB (24 instances)
+L2 cache:                                32 MiB (12 instances)
+L3 cache:                                36 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-31
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Ghostwrite:                Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Old microcode:             Not affected
+Vulnerability Reg file data sampling:    Mitigation; Clear Register File
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace</pre>
+  <pre>total        used        free      shared  buff/cache   available
+Mem:           123Gi        50Gi       9.9Gi        77Mi        64Gi        72Gi
+Swap:           30Gi       156Ki        30Gi</pre>
+  <h3>8.3 GPU</h3>
+  <pre>NVIDIA-SMI has failed because it couldn&#x27;t communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.</pre>
+
+  <h2>9. Otimizações de Desempenho</h2>
+  <p>As otimizações implementadas foram guiadas por evidências coletadas durante a execução no servidor. Em vez de tentar escalar indiscriminadamente, optou-se por uma abordagem com bom custo-benefício para o contexto observado.</p>
+<p>A primeira otimização relevante foi adiar a geração do campo textual <code>Content</code> até depois da aplicação dos limites configurados. Isso reduziu trabalho desnecessário no preprocessamento. A segunda foi ativar o treino paralelo entre duas GPUs, respeitando um limite explícito. A terceira foi acrescentar workers de DataLoader em quantidade moderada. A quarta, e mais impactante, foi transformar a avaliação em um processo em lotes, com suporte a meia precisão.</p>
+  <ul>
+    <li>Paralelismo controlado entre duas GPUs.</li>
+    <li>Quatro workers de DataLoader por processo.</li>
+    <li><code>pin_memory</code> e <code>persistent_workers</code> habilitados.</li>
+    <li>Avaliação com <code>eval_batch_size = 4</code>.</li>
+    <li>Uso de <code>float16</code> e autocast na avaliação.</li>
+    <li>Construção tardia do campo <code>Content</code>.</li>
+  </ul>
+  <div class="warn">
+    <strong>Observação importante.</strong><br />
+    No cenário final, o treino paralelo melhorou a utilização de hardware, mas não reduziu o tempo total de treino em relação ao cenário pequeno anterior, devido ao custo de inicialização de processos e carregamento duplicado do modelo. O maior ganho prático de velocidade veio da avaliação em lotes.
+  </div>
+
+  <h2>10. Execução do Experimento Final</h2>
+  <p>Após a limpeza dos artefatos derivados, o pipeline foi executado novamente desde o início com a configuração consolidada. O preprocessamento leu o CSV bruto, confirmou 16 colunas efetivamente usadas na construção do texto, aplicou os limites definidos e gerou <code>train.csv</code> e <code>test.csv</code> com as dimensões esperadas.</p>
+<p>A tokenização do conjunto de treino foi concluída e o servidor federado dividiu os dados entre dois clientes. O treinamento ocorreu em modo paralelo, utilizando as duas GPUs. Em seguida, a avaliação percorreu os checkpoints das cinco rodadas, gerando métricas de F1, precisão, revocação, FPR benigna e métricas temporais.</p>
+
+  <h2>11. Resultados</h2>
+  <h3>11.1 Melhor checkpoint por configuração top-k</h3>
+  <table><thead><tr><th>K</th><th>Melhor Rodada</th><th>F1</th><th>Precisão</th><th>Revocação</th><th>FPR Benigna</th><th>Limiar</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>0.6949</td><td>0.5352</td><td>0.9907</td><td>0.8604</td><td>0.88</td></tr>
+<tr><td>5</td><td>2</td><td>0.6751</td><td>0.5143</td><td>0.9821</td><td>0.9275</td><td>0.97</td></tr></tbody></table>
+  <p>O melhor resultado global foi obtido em <strong>rodada 2</strong>, com <strong>K = 1</strong> e <strong>F1 = 0.6949</strong>.</p>
+
+  <h3>11.2 Evolução do treinamento</h3>
+  <table><thead><tr><th>Rodada</th><th>Loss Cliente 0</th><th>Loss Cliente 1</th><th>Tempo da Rodada (s)</th><th>Interpretação</th></tr></thead><tbody><tr><td>1</td><td>1.9170</td><td>1.9170</td><td>25</td><td>Parallel training initialized and both GPUs were engaged.</td></tr>
+<tr><td>2</td><td>0.8371</td><td>0.8640</td><td>22</td><td>Fast loss drop indicates that the model quickly learned the benign-flow distribution.</td></tr>
+<tr><td>3</td><td>0.6368</td><td>0.6999</td><td>21</td><td>Training entered a more stable region with diminishing gains.</td></tr>
+<tr><td>4</td><td>0.6569</td><td>0.6474</td><td>21</td><td>Small oscillation, still within the same stability band.</td></tr>
+<tr><td>5</td><td>0.5925</td><td>0.6257</td><td>22</td><td>Lowest observed training losses, but evaluation did not improve materially beyond round 2.</td></tr></tbody></table>
+
+  <h3>11.3 Métricas de comunicação</h3>
+  <table><thead><tr><th>Rodada</th><th>Clientes Selecionados</th><th>Bytes Totais</th><th>Bytes Médios/Cliente</th><th>Parâmetros</th><th>Agregação</th></tr></thead><tbody><tr><td>1</td><td>2</td><td>3686400</td><td>1843200.0</td><td>921600</td><td>FedAvg</td></tr>
+<tr><td>2</td><td>2</td><td>3686400</td><td>1843200.0</td><td>921600</td><td>FedAvg</td></tr>
+<tr><td>3</td><td>2</td><td>3686400</td><td>1843200.0</td><td>921600</td><td>FedAvg</td></tr>
+<tr><td>4</td><td>2</td><td>3686400</td><td>1843200.0</td><td>921600</td><td>FedAvg</td></tr>
+<tr><td>5</td><td>2</td><td>3686400</td><td>1843200.0</td><td>921600</td><td>FedAvg</td></tr></tbody></table>
+
+  <h3>11.4 Tabela completa de F1</h3>
+  <table><thead><tr><th>Rodada</th><th>K</th><th>Limiar</th><th>F1</th><th>Precisão</th><th>Revocação</th><th>FPR Benigna</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>0.76</td><td>0.6753</td><td>0.5122</td><td>0.9907</td><td>0.9436</td></tr>
+<tr><td>1</td><td>5</td><td>0.92</td><td>0.6703</td><td>0.5053</td><td>0.9951</td><td>0.9741</td></tr>
+<tr><td>2</td><td>1</td><td>0.88</td><td>0.6949</td><td>0.5352</td><td>0.9907</td><td>0.8604</td></tr>
+<tr><td>2</td><td>5</td><td>0.97</td><td>0.6751</td><td>0.5143</td><td>0.9821</td><td>0.9275</td></tr>
+<tr><td>3</td><td>1</td><td>0.89</td><td>0.6941</td><td>0.5342</td><td>0.9904</td><td>0.8635</td></tr>
+<tr><td>3</td><td>5</td><td>0.98</td><td>0.6725</td><td>0.5083</td><td>0.9935</td><td>0.9611</td></tr>
+<tr><td>4</td><td>1</td><td>0.92</td><td>0.6833</td><td>0.5198</td><td>0.9967</td><td>0.9207</td></tr>
+<tr><td>4</td><td>5</td><td>0.98</td><td>0.6745</td><td>0.5100</td><td>0.9956</td><td>0.9565</td></tr>
+<tr><td>5</td><td>1</td><td>0.92</td><td>0.6938</td><td>0.5315</td><td>0.9988</td><td>0.8803</td></tr>
+<tr><td>5</td><td>5</td><td>0.98</td><td>0.6740</td><td>0.5097</td><td>0.9945</td><td>0.9565</td></tr></tbody></table>
+
+  <h3>11.5 Métricas temporais</h3>
+  <table><thead><tr><th>Rodada</th><th>K</th><th>TTD Médio (s)</th><th>TTD Mediano (s)</th><th>Cobertura</th><th>FPR Benigna</th><th>Dispositivos Atacados</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9436</td><td>10</td></tr>
+<tr><td>1</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9741</td><td>10</td></tr>
+<tr><td>2</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8604</td><td>10</td></tr>
+<tr><td>2</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9275</td><td>10</td></tr>
+<tr><td>3</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8635</td><td>10</td></tr>
+<tr><td>3</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9611</td><td>10</td></tr>
+<tr><td>4</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9207</td><td>10</td></tr>
+<tr><td>4</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9565</td><td>10</td></tr>
+<tr><td>5</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8803</td><td>10</td></tr>
+<tr><td>5</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9565</td><td>10</td></tr></tbody></table>
+
+  <h2>12. Discussão</h2>
+  <p>Os resultados mostram que a adaptação do pipeline foi bem-sucedida em termos de engenharia. O repositório passou a consumir um dataset real, de grande porte, e produziu artefatos consistentes de treino, teste, tokenização, treinamento federado e avaliação. Além disso, a curva de loss sugere aprendizagem rápida do padrão benigno, com queda acentuada entre as rodadas 1 e 2.</p>
+<p>Do ponto de vista de desempenho preditivo, o melhor resultado em <code>K=1</code> ocorreu na rodada 2, com <code>F1 = 0.6949</code>, <code>Precisão = 0.5352</code> e <code>Revocação = 0.9907</code>. Isso indica que o modelo realmente aprendeu um sinal de separação entre normalidade e anomalia. Entretanto, o valor de <code>FPR Benigna = 0.8604</code> ainda é extremamente alto para um detector operacional.</p>
+<p>Em <code>K=5</code>, o melhor resultado foi <code>F1 = 0.6751</code>, inferior ao de <code>K=1</code>. Isso sugere que, para esta configuração específica de experimento, o top-1 foi mais informativo do que o top-5.</p>
+<p>As métricas temporais mostraram cobertura total e tempo de detecção nulo. Embora isso possa soar excelente, essa leitura precisa ser relativizada: um detector que acusa rapidamente quase tudo também pode manter alto nível de falsos positivos. Assim, o excelente TTD deve ser interpretado em conjunto com a FPR benigna, e não isoladamente.</p>
+
+  <h2>13. Limitações e Ameaças à Validade</h2>
+  <ul>
+    <li>O limiar foi escolhido em modo <code>f1_max</code>, o que é útil para análise exploratória, mas menos realista do que calibração operacional em conjunto separado.</li>
+    <li>O experimento usou um subconjunto controlado do dataset, o que reduz custo, mas também limita representatividade.</li>
+    <li>O treino continuou baseado apenas em tráfego benigno, o que é coerente com a proposta, mas pode restringir alternativas supervisionadas.</li>
+    <li>O conjunto de avaliação foi balanceado artificialmente por limites configurados, o que simplifica comparação, porém não reflete necessariamente a prevalência real de anomalias em produção.</li>
+    <li>O relatório interpreta o estado final do código e os logs observados; mudanças posteriores no repositório podem alterar parte das conclusões.</li>
+  </ul>
+
+  <h2>14. Trabalhos Futuros</h2>
+  <ul>
+    <li>Criar um conjunto de calibração benigno e selecionar limiar por meta de FPR, não apenas por maximização de F1.</li>
+    <li>Testar novas combinações de atributos no campo <code>Content</code>.</li>
+    <li>Aumentar gradualmente <code>benign_train_cap</code> para verificar o efeito de mais dados de normalidade.</li>
+    <li>Comparar distribuição IID com estratégias não IID entre clientes.</li>
+    <li>Executar múltiplas seeds para avaliar estabilidade dos resultados.</li>
+    <li>Investigar formas adicionais de redução de falsos positivos.</li>
+  </ul>
+
+  <h2>15. Conclusão</h2>
+  <p>Este trabalho transformou a trilha de Wi-Fi do repositório <code>FL_NETWORK_FLOW_LLM</code> de uma implementação demonstrativa para um pipeline funcional sobre dados reais de fluxo de rede. A integração do dataset CIC-IDS2018 Tuesday foi concluída com organização adequada dos dados, refatoração do processamento, ajustes no treinamento federado, otimizações de desempenho e avaliação consistente.</p>
+<p>O experimento final comprova que o sistema está operacional e que o modelo aprende rapidamente padrões de tráfego benigno. O melhor checkpoint surgiu cedo, na rodada 2, o que aponta convergência rápida sob o orçamento de treino adotado. Ainda assim, a taxa de falsos positivos sobre tráfego benigno permanece elevada, indicando que a base atual deve ser entendida como um baseline funcional e não como detector pronto para implantação.</p>
+<p>Do ponto de vista de engenharia, o ganho mais relevante foi tornar o repositório reproduzível, escalável para um dataset real e significativamente mais eficiente na fase de avaliação. Essa base agora permite ciclos futuros de experimentação mais rápidos, mais controlados e metodologicamente mais sólidos.</p>
+
+  <h2>Apêndice A. Inventário de Arquivos</h2>
+  <pre>FL_NETWORK_FLOW_LLM/
+├── configs/config_wifi.yaml
+├── data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+├── data/wifi/processed/train.csv
+├── data/wifi/processed/test.csv
+├── data/wifi/processed/tokenized/
+├── results/WiFi_CICIDS2018_Tuesday/
+│   ├── client_data/client_data_metadata.json
+│   ├── communication_metrics.csv
+│   ├── f1_scores.csv
+│   ├── temporal_metrics.csv
+│   └── round_0 ... round_5/
+├── src/data_processing/wifi_processor.py
+├── src/federated_learning/client.py
+├── src/federated_learning/server.py
+├── src/evaluation/evaluator.py
+└── docs/
+    ├── generate_wifi_report.py
+    ├── generate_wifi_report_academic_ptbr.py
+    ├── WiFi_CICIDS2018_Technical_Report.pdf
+    └── Relatorio_Academico_CICIDS2018_WiFi_PTBR.pdf</pre>
+
+  <h2>Apêndice B. Configuração Completa do Experimento</h2>
+  <pre>simulation_name: &quot;WiFi_CICIDS2018_Tuesday&quot;
+
+dataset_name: &quot;wifi&quot;
+description: &quot;WiFi/network-flow anomaly detection using the CIC-IDS2018 Tuesday flow CSV.&quot;
+
+data_base_path: &quot;./data/&quot;
+results_path: &quot;./results/&quot;
+
+# Raw dataset placement:
+#   data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+raw_csv_file: &quot;Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv&quot;
+label_column: &quot;Label&quot;
+normal_label_values: [&quot;Benign&quot;]
+
+# Flow-to-text conversion:
+# The processor will use whichever of these columns are actually present in the CSV.
+wifi_content_columns:
+  - &quot;Protocol&quot;
+  - &quot;Flow Duration&quot;
+  - &quot;Tot Fwd Pkts&quot;
+  - &quot;Tot Bwd Pkts&quot;
+  - &quot;TotLen Fwd Pkts&quot;
+  - &quot;TotLen Bwd Pkts&quot;
+  - &quot;Flow Byts/s&quot;
+  - &quot;Flow Bytes/s&quot;
+  - &quot;Flow Pkts/s&quot;
+  - &quot;Flow IAT Mean&quot;
+  - &quot;Fwd IAT Mean&quot;
+  - &quot;Bwd IAT Mean&quot;
+  - &quot;Pkt Len Mean&quot;
+  - &quot;Pkt Len Var&quot;
+  - &quot;SYN Flag Cnt&quot;
+  - &quot;ACK Flag Cnt&quot;
+  - &quot;PSH Flag Cnt&quot;
+
+# Split strategy:
+# Only benign traffic is used for training.
+train_benign_fraction: 0.8
+benign_calibration_fraction: 0.0
+random_seed: 42
+test_balance: false
+
+# Quick-test controls:
+# - raw_nrows reads only the first N rows of the raw CSV (fastest, but less representative).
+# - *_cap limits the size of each processed split without changing the raw dataset.
+# For full runs, keep these as null.
+raw_nrows: null
+benign_train_cap: 250000
+calibration_benign_cap: null
+test_benign_cap: 125000
+test_anomaly_cap: 125000
+
+model_name: &quot;HuggingFaceTB/SmolLM-135M&quot;
+
+lora: true
+lora_rank: 8
+lora_alpha_multiplier: 2
+lora_dropout: 0.05
+
+use_parallel_training: true
+max_parallel_gpus: 2
+
+num_rounds: 5
+num_clients: 2
+client_frac: 1.0
+
+max_steps: 20
+batch_size: 2
+dataloader_num_workers: 4
+dataloader_pin_memory: true
+dataloader_persistent_workers: true
+initial_lr: 0.001
+lr_scheduler_type: &quot;constant&quot;
+warmup_steps: 0
+
+force_reprocess_data: true
+evaluator_version: &quot;new&quot;
+eval_batch_size: 4
+eval_use_autocast: true
+eval_torch_dtype: &quot;float16&quot;
+
+top_k_values: [1, 5]
+threshold_metric: &quot;top1&quot;
+threshold_strategy: &quot;f1_max&quot;
+f1_threshold_steps: 101</pre>
+
+  <h2>Apêndice C. Comandos de Reprodução</h2>
+  <pre>cd ~/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM\nsource venv/bin/activate\nmkdir -p data/wifi/raw data/wifi/processed\nwget -O data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv \&quot;https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv\&quot;\npython main.py --config configs/config_wifi.yaml</pre>
+
+  <h2>Apêndice D. Tabela de Conteúdo do Relatório</h2>
+  <div class="toc">
+    <pre>Capa
+Resumo
+Abstract
+1. Introdução
+2. Objetivos
+3. Caracterização do Repositório e do Cenário Inicial
+4. Dataset Utilizado e Estratégia de Armazenamento
+5. Metodologia de Adaptação do Pipeline
+6. Alterações Implementadas no Código
+7. Metodologia Experimental
+8. Ambiente Computacional e Restrições do Servidor
+9. Otimizações de Desempenho
+10. Execução do Experimento Final
+11. Resultados
+12. Discussão
+13. Limitações e Ameaças à Validade
+14. Trabalhos Futuros
+15. Conclusão
+Apêndice A. Inventário de Arquivos
+Apêndice B. Configuração Completa
+Apêndice C. Comandos de Reprodução</pre>
+  </div>
+
+  <h2>Apêndice E. Localização dos Arquivos Gerados</h2>
+  <pre>HTML: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/docs/Relatorio_Academico_CICIDS2018_WiFi_PTBR.html\nPDF: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/docs/Relatorio_Academico_CICIDS2018_WiFi_PTBR.pdf\nConfig: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/configs/config_wifi.yaml\nResultados F1: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday/f1_scores.csv\nResultados Temporais: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday/temporal_metrics.csv\nComunicação: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday/communication_metrics.csv\nMetadados de clientes: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday/client_data/client_data_metadata.json</pre>
+</body>
+</html>

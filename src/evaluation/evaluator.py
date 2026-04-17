@@ -1,16 +1,22 @@
 import os
+from contextlib import nullcontext
 import pandas as pd
 import numpy as np
 import torch
 import time
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    AutoModelForSequenceClassification,
+)
 from peft import PeftModel
 from sklearn.metrics import f1_score, precision_score, recall_score
 import warnings
 
 warnings.filterwarnings("ignore")
 
-from src.utils.hf import hf_from_pretrained_kwargs
+from src.utils.hf import hf_from_pretrained_kwargs, hf_set_dtype_arg
+from src.utils.peft_utils import install_modules_to_save_dtype_bridges
 
 
 class Evaluator:
@@ -28,14 +34,93 @@ class Evaluator:
         os.makedirs(self.output_dir, exist_ok=True)
         self.test_df = self._load_test_data()
 
+    def _get_training_task(self) -> str:
+        return str(self.config.get("training_task", "causal_lm")).strip().lower()
+
+    def _is_sequence_classification(self) -> bool:
+        return self._get_training_task() == "sequence_classification"
+
+    def _anomaly_label_id(self) -> int:
+        return int(self.config.get("anomaly_label_id", 1))
+
+    def _score_descending_is_anomaly(self) -> bool:
+        return self._is_sequence_classification()
+
+    def _predict_from_scores(self, scores, threshold):
+        scores = np.asarray(scores, dtype=float)
+        if self._score_descending_is_anomaly():
+            return (scores >= float(threshold)).astype(int)
+        return (scores < float(threshold)).astype(int)
+
+    def _build_tokenizer(self):
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.config["model_name"], **hf_from_pretrained_kwargs(self.config)
+        )
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token or tokenizer.unk_token
+        return tokenizer
+
+    def _load_model_from_path(self, model_path: str):
+        eval_model_kwargs = self._eval_model_load_kwargs()
+        if self._is_sequence_classification():
+            base_model = AutoModelForSequenceClassification.from_pretrained(
+                self.config["model_name"],
+                num_labels=int(self.config.get("num_labels", 2)),
+                **eval_model_kwargs,
+            )
+            if self.config["lora"]:
+                model = PeftModel.from_pretrained(base_model, model_path)
+                install_modules_to_save_dtype_bridges(model)
+            else:
+                model = AutoModelForSequenceClassification.from_pretrained(
+                    model_path,
+                    num_labels=int(self.config.get("num_labels", 2)),
+                    **eval_model_kwargs,
+                )
+        else:
+            base_model = AutoModelForCausalLM.from_pretrained(
+                self.config["model_name"], **eval_model_kwargs
+            )
+            if self.config["lora"]:
+                model = PeftModel.from_pretrained(base_model, model_path)
+                install_modules_to_save_dtype_bridges(model)
+            else:
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_path, **eval_model_kwargs
+                )
+
+        if (
+            getattr(model.config, "pad_token_id", None) is None
+            and getattr(self, "_cached_tokenizer_pad_id", None) is not None
+        ):
+            model.config.pad_token_id = self._cached_tokenizer_pad_id
+        return model
+
     def _output_csv_path(self, basename: str) -> str:
         """
         Returns an output path for a CSV basename, suffixing by threshold mode
         when not using the oracle `f1_max` selection.
         """
-        threshold_mode = str(self.config.get("threshold_selection", "f1_max")).lower()
+        threshold_mode = self._get_threshold_mode()
         suffix = "" if threshold_mode == "f1_max" else f"_{threshold_mode}"
         return os.path.join(self.output_dir, f"{basename}{suffix}.csv")
+
+    def _get_threshold_mode(self) -> str:
+        """
+        Resolves the configured threshold-selection strategy.
+
+        Preferred key:
+          - threshold_selection
+
+        Backward-compatible alias:
+          - threshold_strategy
+        """
+        return str(
+            self.config.get(
+                "threshold_selection",
+                self.config.get("threshold_strategy", "f1_max"),
+            )
+        ).lower()
 
     def _load_test_data(self):
         """Loads and prepares the test dataset."""
@@ -55,12 +140,18 @@ class Evaluator:
 
     def _parse_timestamps(self, series: pd.Series) -> pd.Series:
         """
-        Parses Edge-IIoTSet timestamps robustly.
+        Parses dataset timestamps robustly.
 
-        The dataset commonly uses the format: '%d/%m/%Y %I:%M:%S %p'. We try that
-        first for consistency, then fall back to a more permissive parser.
+        WiFi/CICIDS2018 typically uses 24h timestamps like '%d/%m/%Y %H:%M:%S',
+        while some older datasets in this project use 12h timestamps with AM/PM.
+        We try both explicitly, then fall back to a permissive parser.
         """
-        ts = pd.to_datetime(series, format="%d/%m/%Y %I:%M:%S %p", errors="coerce")
+        ts = pd.to_datetime(series, format="%d/%m/%Y %H:%M:%S", errors="coerce")
+        missing = ts.isna()
+        if missing.any():
+            ts.loc[missing] = pd.to_datetime(
+                series[missing], format="%d/%m/%Y %I:%M:%S %p", errors="coerce"
+            )
         missing = ts.isna()
         if missing.any():
             ts.loc[missing] = pd.to_datetime(
@@ -93,7 +184,7 @@ class Evaluator:
         if not os.path.exists(path):
             raise FileNotFoundError(
                 f"Calibration source '{source}' requires {path}, but it does not exist. "
-                "Re-run preprocessing with `benign_calibration_fraction > 0`."
+                "Re-run preprocessing with calibration enabled in the WiFi split config."
             )
         df = pd.read_csv(path)
         if "Label" in df.columns:
@@ -110,14 +201,25 @@ class Evaluator:
         """Helper function: checks if target_token is in the top-k predictions."""
         return target_token in top_k_preds
 
+    def _eval_model_load_kwargs(self):
+        kwargs = hf_from_pretrained_kwargs(self.config)
+        dtype_name = str(self.config.get("eval_torch_dtype", "")).lower().strip()
+        if torch.cuda.is_available():
+            if dtype_name in ("float16", "fp16", "half"):
+                kwargs = hf_set_dtype_arg(kwargs, torch.float16)
+            elif dtype_name in ("bfloat16", "bf16"):
+                kwargs = hf_set_dtype_arg(kwargs, torch.bfloat16)
+        return kwargs
+
     def _calculate_top_k_accuracy_for_texts(
         self, model, tokenizer, texts, *, progress_label=""
     ):
-        """Calculates the top-k prediction accuracy for each log sequence.
+        """Calculates the per-log score used for anomaly decisions.
 
-        Supports two methods, configured via `accuracy_method` in the YAML:
-          - "shifted": usa próximo-token (logits shiftados vs labels shiftados)
-          - "original": replica a lógica do `evaluator_antigo` (sem shift)
+        In causal LM mode this returns token-prediction accuracies for each top-k.
+        In sequence-classification mode this returns the anomaly probability and
+        mirrors it into each configured `top{k}` column for compatibility with
+        the rest of the reporting pipeline.
         """
         print(
             f"Calculating top-k accuracy{(' for ' + progress_label) if progress_label else ''}..."
@@ -127,32 +229,64 @@ class Evaluator:
         model.eval()
 
         method = self.config.get("accuracy_method", "shifted")
+        batch_size = max(1, int(self.config.get("eval_batch_size", 1)))
+        max_len = int(
+            self.config.get("eval_max_length", self.config.get("max_length", 1024))
+        )
+        use_autocast = bool(self.config.get("eval_use_autocast", True))
 
         total_texts = len(texts)
         with torch.no_grad():
-            for i, text in enumerate(texts):
-                if (i + 1) % 100 == 0:
+            for start in range(0, total_texts, batch_size):
+                end = min(start + batch_size, total_texts)
+                if end % max(100, batch_size * 10) == 0 or end == total_texts:
                     label = f" ({progress_label})" if progress_label else ""
                     print(
-                        f"\r  Calculating accuracy{label}... {i + 1}/{total_texts}",
+                        f"\r  Calculating accuracy{label}... {end}/{total_texts}",
                         end="",
                     )
 
                 inputs = tokenizer(
-                    str(text),
+                    [str(text) for text in texts[start:end]],
                     return_tensors="pt",
                     padding=True,
                     truncation=True,
-                    max_length=int(
-                        self.config.get(
-                            "eval_max_length", self.config.get("max_length", 1024)
-                        )
-                    ),
+                    max_length=max_len,
                 )
                 inputs = {key: val.to(self.device) for key, val in inputs.items()}
+                input_ids = inputs["input_ids"]
+                attention_mask = inputs.get(
+                    "attention_mask",
+                    torch.ones_like(input_ids, device=input_ids.device),
+                )
 
-                outputs = model(**inputs)
+                if torch.cuda.is_available() and use_autocast:
+                    autocast_dtype = (
+                        torch.bfloat16
+                        if str(self.config.get("eval_torch_dtype", "")).lower().strip()
+                        in ("bfloat16", "bf16")
+                        else torch.float16
+                    )
+                    autocast_ctx = torch.autocast(
+                        device_type="cuda", dtype=autocast_dtype
+                    )
+                else:
+                    autocast_ctx = nullcontext()
+
+                with autocast_ctx:
+                    outputs = model(**inputs)
                 logits = outputs.logits
+
+                if self._is_sequence_classification():
+                    if logits.shape[-1] == 1:
+                        anomaly_scores = torch.sigmoid(logits.squeeze(-1))
+                    else:
+                        probs = torch.softmax(logits, dim=-1)
+                        anomaly_scores = probs[:, self._anomaly_label_id()]
+                    anomaly_scores = anomaly_scores.detach().float().cpu().tolist()
+                    for k in self.config["top_k_values"]:
+                        accuracies[f"top{k}"].extend(anomaly_scores)
+                    continue
 
                 if method in ("original", "legacy_flat"):
                     # "original": project/paper behavior (position-by-position).
@@ -160,42 +294,58 @@ class Evaluator:
                     # whole top_k[0] matrix, i.e., flattened over seq_len x k).
                     for k in self.config["top_k_values"]:
                         top_k_preds_indices = torch.topk(logits, k, dim=-1).indices
-                        top_k_preds_indices = top_k_preds_indices.cpu().numpy()
-
-                        input_tokens = inputs["input_ids"][0].cpu().numpy()
 
                         if method == "legacy_flat":
-                            correct_predictions = sum(
-                                self._is_in_top_k(top_k_preds_indices[0], token)
-                                for token in input_tokens
-                            )
+                            top_k_preds_indices = top_k_preds_indices.cpu().numpy()
+                            input_tokens = input_ids.cpu().numpy()
+                            valid_mask = attention_mask.cpu().numpy().astype(bool)
+                            for sample_idx in range(len(input_tokens)):
+                                valid_tokens = input_tokens[sample_idx][
+                                    valid_mask[sample_idx]
+                                ]
+                                correct_predictions = sum(
+                                    self._is_in_top_k(
+                                        top_k_preds_indices[sample_idx], token
+                                    )
+                                    for token in valid_tokens
+                                )
+                                total_tokens = len(valid_tokens)
+                                accuracies[f"top{k}"].append(
+                                    correct_predictions / total_tokens
+                                    if total_tokens > 0
+                                    else 0
+                                )
                         else:
-                            correct_predictions = sum(
-                                self._is_in_top_k(top_k_preds_indices[0, idx], token)
-                                for idx, token in enumerate(input_tokens)
+                            matches = (
+                                top_k_preds_indices == input_ids.unsqueeze(-1)
+                            ).any(dim=-1)
+                            valid_mask = attention_mask.bool()
+                            correct_predictions = (
+                                matches & valid_mask
+                            ).sum(dim=-1).float()
+                            total_tokens = valid_mask.sum(dim=-1).clamp_min(1).float()
+                            accuracies[f"top{k}"].extend(
+                                (correct_predictions / total_tokens).cpu().tolist()
                             )
-
-                        total_tokens = len(input_tokens)
-                        accuracies[f"top{k}"].append(
-                            correct_predictions / total_tokens
-                            if total_tokens > 0
-                            else 0
-                        )
                 else:
                     # Método "shifted": próximo-token (mais canônico para LM)
                     shifted_logits = logits[..., :-1, :].contiguous()
-                    labels = inputs["input_ids"][..., 1:].contiguous()
+                    labels = input_ids[..., 1:].contiguous()
+                    valid_mask = attention_mask[..., 1:].bool()
 
                     for k in self.config["top_k_values"]:
                         top_k_preds = torch.topk(shifted_logits, k, dim=-1).indices
 
                         # Check if the true next token is in the top-k predictions
-                        correct = torch.sum(top_k_preds == labels.unsqueeze(-1)).item()
-                        total = labels.numel()
+                        matches = (top_k_preds == labels.unsqueeze(-1)).any(dim=-1)
+                        correct = (matches & valid_mask).sum(dim=-1).float()
+                        total = valid_mask.sum(dim=-1).clamp_min(1).float()
 
-                        accuracies[f"top{k}"].append(
-                            correct / total if total > 0 else 0
+                        accuracies[f"top{k}"].extend(
+                            (correct / total).cpu().tolist()
                         )
+
+        print()
 
         return pd.DataFrame(accuracies)
 
@@ -213,7 +363,7 @@ class Evaluator:
         best_f1 = -1.0
         best_th = 0.0
         for th in thresholds:
-            preds = (scores < th).astype(int)
+            preds = self._predict_from_scores(scores, th)
             f1 = f1_score(labels, preds)
             if f1 > best_f1:
                 best_f1 = f1
@@ -223,10 +373,23 @@ class Evaluator:
     def _select_threshold_fpr_target(self, benign_scores):
         target = float(self.config.get("fpr_target", 0.01))
         target = min(max(target, 0.0), 1.0)
-        if len(benign_scores) == 0:
+        scores = np.asarray(benign_scores, dtype=np.float64)
+        scores = scores[np.isfinite(scores)]
+        if len(scores) == 0:
             return 0.0
+
+        if self._score_descending_is_anomaly():
+            # Want P(score >= th) ~= target for benign-only calibration set.
+            threshold = float(np.quantile(scores, 1.0 - target))
+            if threshold <= 0.0:
+                positive_scores = scores[scores > 0.0]
+                if positive_scores.size:
+                    # Keep the operational rule numerically valid even when
+                    # reduced-precision inference collapses the quantile to zero.
+                    return float(np.min(positive_scores))
+            return threshold
         # Want P(score < th) ~= target for benign-only calibration set.
-        return float(np.quantile(benign_scores, target))
+        return float(np.quantile(scores, target))
 
     def _benchmark_inference(self, model, tokenizer, texts, *, round_num):
         if not texts:
@@ -434,10 +597,8 @@ class Evaluator:
         and saves results.
         """
         print("--- Starting Evaluation ---")
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.config["model_name"], **hf_from_pretrained_kwargs(self.config)
-        )
-        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer = self._build_tokenizer()
+        self._cached_tokenizer_pad_id = tokenizer.pad_token_id
 
         all_f1_results = []
         all_temporal_results = []
@@ -469,16 +630,7 @@ class Evaluator:
                 continue
 
             print("Loading model...")
-            # Load model for the current round
-            base_model = AutoModelForCausalLM.from_pretrained(
-                self.config["model_name"], **hf_from_pretrained_kwargs(self.config)
-            )
-            if self.config["lora"]:
-                model = PeftModel.from_pretrained(base_model, model_path)
-            else:
-                model = AutoModelForCausalLM.from_pretrained(
-                    model_path, **hf_from_pretrained_kwargs(self.config)
-                )
+            model = self._load_model_from_path(model_path)
 
             # Optional inference benchmark (deployability)
             if (
@@ -495,14 +647,14 @@ class Evaluator:
                 if bench is not None:
                     all_bench_results.append(bench)
 
-            print(f"Calculating accuracies... {model}")
+            print("Calculating accuracies...")
             # Calculate accuracies
             acc_df = self._calculate_top_k_accuracy(model, tokenizer)
             print("Accuracies calculated:")
             acc_df["label"] = self.test_df["Label"]
             print(acc_df.describe())
 
-            threshold_mode = self.config.get("threshold_selection", "f1_max")
+            threshold_mode = self._get_threshold_mode()
             calib_acc_df = None
             calib_window_df_by_k = {}
             if threshold_mode == "fpr_target":
@@ -550,12 +702,20 @@ class Evaluator:
                             window_df["score"].values, window_df["Label"].values
                         )
 
-                    window_df["pred"] = (window_df["score"] < th).astype(int)
+                    window_df["pred"] = self._predict_from_scores(
+                        window_df["score"].values, th
+                    )
                     f1 = float(f1_score(window_df["Label"], window_df["pred"]))
                     precision = float(
-                        precision_score(window_df["Label"], window_df["pred"])
+                        precision_score(
+                            window_df["Label"], window_df["pred"], zero_division=0
+                        )
                     )
-                    recall = float(recall_score(window_df["Label"], window_df["pred"]))
+                    recall = float(
+                        recall_score(
+                            window_df["Label"], window_df["pred"], zero_division=0
+                        )
+                    )
                     benign_fpr = (
                         float(
                             (window_df.loc[window_df["Label"] == 0, "pred"] == 1).mean()
@@ -584,6 +744,16 @@ class Evaluator:
                             "fpr_target": float(self.config.get("fpr_target", np.nan))
                             if threshold_mode == "fpr_target"
                             else np.nan,
+                            "calibration_source": self.config.get(
+                                "calibration_source", ""
+                            )
+                            if threshold_mode == "fpr_target"
+                            else "",
+                            "calibration_num_samples": int(
+                                self.config.get("calibration_num_samples", 0)
+                            )
+                            if threshold_mode == "fpr_target"
+                            else 0,
                             "threshold": th,
                             "f1_score": f1,
                             "precision": precision,
@@ -620,16 +790,20 @@ class Evaluator:
                         th = self._select_threshold_fpr_target(
                             calib_acc_df[f"top{k}"].values
                         )
-                        preds = (scores < th).astype(int)
+                        preds = self._predict_from_scores(scores.values, th)
                         f1 = float(f1_score(acc_df["label"], preds))
                     else:
                         th, f1 = self._select_threshold_f1_max(
                             scores.values, acc_df["label"].values
                         )
-                        preds = (scores < th).astype(int)
+                        preds = self._predict_from_scores(scores.values, th)
 
-                    precision = float(precision_score(acc_df["label"], preds))
-                    recall = float(recall_score(acc_df["label"], preds))
+                    precision = float(
+                        precision_score(acc_df["label"], preds, zero_division=0)
+                    )
+                    recall = float(
+                        recall_score(acc_df["label"], preds, zero_division=0)
+                    )
                     benign_fpr = (
                         float((preds[acc_df["label"] == 0] == 1).mean())
                         if (acc_df["label"] == 0).any()
@@ -650,6 +824,16 @@ class Evaluator:
                             "fpr_target": float(self.config.get("fpr_target", np.nan))
                             if threshold_mode == "fpr_target"
                             else np.nan,
+                            "calibration_source": self.config.get(
+                                "calibration_source", ""
+                            )
+                            if threshold_mode == "fpr_target"
+                            else "",
+                            "calibration_num_samples": int(
+                                self.config.get("calibration_num_samples", 0)
+                            )
+                            if threshold_mode == "fpr_target"
+                            else 0,
                             "threshold": th,
                             "f1_score": f1,
                             "precision": precision,
@@ -669,6 +853,10 @@ class Evaluator:
                         )
                         if temporal_metrics is not None:
                             all_temporal_results.append(temporal_metrics)
+
+            del model
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         # Save final results
         f1_df = pd.DataFrame(all_f1_results)

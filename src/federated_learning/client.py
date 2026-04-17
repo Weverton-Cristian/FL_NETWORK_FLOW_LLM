@@ -1,5 +1,6 @@
 import os
 import json
+from collections import Counter
 from dataclasses import dataclass
 import inspect
 from typing import Any
@@ -8,15 +9,18 @@ from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
     AutoModelForMaskedLM,
+    AutoModelForSequenceClassification,
     TrainingArguments,
     Trainer,
     DataCollatorForLanguageModeling,
+    DataCollatorWithPadding,
 )
 from transformers.data.data_collator import pad_without_fast_tokenizer_warning
 from peft import PeftModel
 from datasets import load_from_disk
 
-from src.utils.hf import hf_from_pretrained_kwargs
+from src.utils.hf import hf_from_pretrained_kwargs, hf_set_dtype_arg
+from src.utils.peft_utils import prepare_peft_model_for_mixed_precision
 
 
 @dataclass
@@ -95,10 +99,90 @@ class ClientTrainer:
         self.gpu_id = gpu_id  # Armazena o ID da GPU
         self.model_name = config["model_name"]
         self.use_lora = config["lora"]
+        self.training_task = str(
+            config.get("training_task", "causal_lm")
+        ).strip().lower()
+
+    def _resolve_train_model_dtype(self):
+        dtype_name = str(self.config.get("train_torch_dtype", "auto")).strip().lower()
+        if dtype_name in ("", "auto"):
+            if torch.cuda.is_available():
+                return torch.float16
+            return None
+        if dtype_name in ("float16", "fp16", "half"):
+            return torch.float16
+        if dtype_name in ("bfloat16", "bf16"):
+            return torch.bfloat16
+        if dtype_name in ("float32", "fp32", "float"):
+            return torch.float32
+        raise ValueError(
+            "Unsupported train_torch_dtype. Use auto, float16, bfloat16 or float32."
+        )
+
+    def _resolve_trainer_precision_flags(self):
+        precision = str(
+            self.config.get("train_mixed_precision", "auto")
+        ).strip().lower()
+        train_dtype = self._resolve_train_model_dtype()
+        if not torch.cuda.is_available():
+            return False, False
+
+        if precision in ("none", "no", "false", "off"):
+            return False, False
+        if precision == "bf16":
+            return False, True
+        if precision == "fp16":
+            return True, False
+        if precision != "auto":
+            raise ValueError(
+                "Unsupported train_mixed_precision. Use auto, fp16, bf16 or none."
+            )
+
+        if train_dtype == torch.bfloat16:
+            return False, True
+        if train_dtype == torch.float16:
+            return True, False
+        return False, False
+
+    def _prepare_peft_model_for_mixed_precision_training(self, model):
+        target_dtype = self._resolve_train_model_dtype()
+        prepare_peft_model_for_mixed_precision(model, target_dtype)
+
+    def _validate_trainable_param_dtypes(self, model, *, use_fp16: bool, use_bf16: bool):
+        trainable = [
+            (name, param)
+            for name, param in model.named_parameters()
+            if param.requires_grad
+        ]
+        if not trainable:
+            raise RuntimeError(
+                "No trainable parameters were found on the client model. "
+                "This would make local training a no-op."
+            )
+
+        counts = Counter(str(param.dtype) for _, param in trainable)
+        print(f"  Trainable dtype summary: {dict(counts)}")
+
+        if use_fp16 or use_bf16:
+            offenders = [
+                (name, str(param.dtype))
+                for name, param in trainable
+                if param.dtype != torch.float32
+            ]
+            if offenders:
+                sample = ", ".join(f"{name}={dtype}" for name, dtype in offenders[:5])
+                mode = "fp16" if use_fp16 else "bf16"
+                raise RuntimeError(
+                    f"Invalid mixed-precision setup for {mode}: trainable PEFT parameters "
+                    f"must be float32, but found {len(offenders)} offending tensors. "
+                    f"Examples: {sample}"
+                )
 
     def _load_model_for_training(self, round_num):
         """Loads the global model from the previous round and prepares it for training."""
         hf_kwargs = hf_from_pretrained_kwargs(self.config)
+        train_dtype = self._resolve_train_model_dtype()
+        hf_kwargs = hf_set_dtype_arg(hf_kwargs, train_dtype)
         model_path = os.path.join(
             self.config["results_path"],
             self.config["simulation_name"],
@@ -109,7 +193,24 @@ class ClientTrainer:
 
         legacy_4bit = bool(self.config.get("legacy_4bit_training", False))
 
-        if "bert" in self.model_name.lower():
+        if self.training_task == "sequence_classification":
+            if self.use_lora:
+                model = AutoModelForSequenceClassification.from_pretrained(
+                    self.model_name,
+                    num_labels=int(self.config.get("num_labels", 2)),
+                    **hf_kwargs,
+                )
+                if torch.cuda.is_available():
+                    model = model.to(f"cuda:{self.gpu_id}")
+                model = PeftModel.from_pretrained(model, model_path, is_trainable=True)
+                self._prepare_peft_model_for_mixed_precision_training(model)
+            else:
+                model = AutoModelForSequenceClassification.from_pretrained(
+                    model_path,
+                    num_labels=int(self.config.get("num_labels", 2)),
+                    **hf_kwargs,
+                )
+        elif "bert" in self.model_name.lower():
             if self.use_lora:
                 model = AutoModelForMaskedLM.from_pretrained(
                     self.model_name, **hf_kwargs
@@ -117,6 +218,7 @@ class ClientTrainer:
                 if torch.cuda.is_available():
                     model = model.to(f"cuda:{self.gpu_id}")
                 model = PeftModel.from_pretrained(model, model_path, is_trainable=True)
+                self._prepare_peft_model_for_mixed_precision_training(model)
             else:
                 model = AutoModelForMaskedLM.from_pretrained(model_path, **hf_kwargs)
         else:
@@ -133,7 +235,6 @@ class ClientTrainer:
                     )
                 model = AutoModelForCausalLM.from_pretrained(
                     self.model_name,
-                    torch_dtype=torch.float16,
                     **extra_kwargs,
                     **hf_kwargs,
                 )
@@ -141,6 +242,7 @@ class ClientTrainer:
                 if torch.cuda.is_available() and not legacy_4bit:
                     model = model.to(f"cuda:{self.gpu_id}")
                 model = PeftModel.from_pretrained(model, model_path, is_trainable=True)
+                self._prepare_peft_model_for_mixed_precision_training(model)
             else:
                 model = AutoModelForCausalLM.from_pretrained(model_path, **hf_kwargs)
 
@@ -191,9 +293,44 @@ class ClientTrainer:
 
         # 3. Setup Training Arguments
         legacy_training_args = bool(self.config.get("legacy_training_args", False))
+        ta_params = set(inspect.signature(TrainingArguments.__init__).parameters)
+        dataloader_num_workers = int(self.config.get("dataloader_num_workers", 0))
+        dataloader_pin_memory = bool(self.config.get("dataloader_pin_memory", True))
+        dataloader_persistent_workers = bool(
+            self.config.get("dataloader_persistent_workers", False)
+        )
+        max_steps = int(self.config.get("max_steps", -1))
+        num_train_epochs = float(self.config.get("num_train_epochs", 1.0))
+        logging_steps = int(self.config.get("logging_steps", 1000))
+        warmup_steps = self.config.get("warmup_steps")
+        warmup_ratio = self.config.get("warmup_ratio")
+        use_fp16, use_bf16 = self._resolve_trainer_precision_flags()
+        self._validate_trainable_param_dtypes(
+            model, use_fp16=use_fp16, use_bf16=use_bf16
+        )
+
+        def _maybe_set_dataloader_args(kwargs):
+            if "dataloader_num_workers" in ta_params:
+                kwargs["dataloader_num_workers"] = dataloader_num_workers
+            if "dataloader_pin_memory" in ta_params:
+                kwargs["dataloader_pin_memory"] = dataloader_pin_memory
+            if "dataloader_persistent_workers" in ta_params:
+                kwargs["dataloader_persistent_workers"] = (
+                    dataloader_persistent_workers and dataloader_num_workers > 0
+                )
+            return kwargs
+
+        def _maybe_set_warmup_args(kwargs):
+            # Prefer warmup_steps because warmup_ratio is deprecated in the
+            # transformers version used in this environment.
+            if warmup_steps is not None and "warmup_steps" in ta_params:
+                kwargs["warmup_steps"] = int(warmup_steps)
+            elif warmup_ratio is not None and "warmup_ratio" in ta_params:
+                kwargs["warmup_ratio"] = float(warmup_ratio)
+            return kwargs
+
         if legacy_training_args:
             # transformers renamed evaluation_strategy -> eval_strategy (>=4.57)
-            ta_params = set(inspect.signature(TrainingArguments.__init__).parameters)
             eval_key = (
                 "eval_strategy"
                 if "eval_strategy" in ta_params
@@ -202,16 +339,13 @@ class ClientTrainer:
 
             ta_kwargs = {
                 "output_dir": "./fl-results",
-                "logging_dir": "./logs",
-                "logging_steps": self.config["max_steps"] + 11,
+                "logging_steps": logging_steps,
                 "learning_rate": learning_rate,
                 "weight_decay": 0.01,
-                "max_steps": self.config["max_steps"],
-                "num_train_epochs": 1,
+                "num_train_epochs": num_train_epochs,
                 "save_steps": 1000,
-                eval_key: "steps",
-                "eval_steps": self.config["max_steps"] + 1,
-                "fp16": True,
+                "fp16": use_fp16,
+                "bf16": use_bf16,
                 "optim": "paged_adamw_8bit",
                 "per_device_train_batch_size": self.config["batch_size"],
                 "gradient_accumulation_steps": self.config.get(
@@ -220,38 +354,51 @@ class ClientTrainer:
                 "lr_scheduler_type": self.config.get(
                     "trainer_lr_scheduler_type", self.config["lr_scheduler_type"]
                 ),
-                "warmup_ratio": float(self.config.get("warmup_ratio", 0.0)),
                 "max_grad_norm": float(self.config.get("max_grad_norm", 1.0)),
                 "save_strategy": "no",
             }
+            if max_steps > 0:
+                ta_kwargs["max_steps"] = max_steps
+                ta_kwargs[eval_key] = "steps"
+                ta_kwargs["eval_steps"] = max_steps + 1
+            else:
+                ta_kwargs["max_steps"] = -1
+                ta_kwargs[eval_key] = "no"
+            ta_kwargs = _maybe_set_warmup_args(ta_kwargs)
+            ta_kwargs = _maybe_set_dataloader_args(ta_kwargs)
             training_args = TrainingArguments(**ta_kwargs)
         else:
-            training_args = TrainingArguments(
-                output_dir=os.path.join(
+            ta_kwargs = {
+                "output_dir": os.path.join(
                     self.config["results_path"],
                     self.config["simulation_name"],
                     "client_training_output",
                 ),
-                logging_dir=os.path.join(
-                    self.config["results_path"], self.config["simulation_name"], "logs"
-                ),
-                logging_steps=self.config["max_steps"]
-                + 1,  # Avoid logging during training
-                learning_rate=learning_rate,
-                weight_decay=0.01,
-                max_steps=self.config["max_steps"],
-                fp16=True,
-                optim="paged_adamw_8bit",
-                per_device_train_batch_size=self.config["batch_size"],
-                gradient_accumulation_steps=self.config.get(
+                "logging_steps": logging_steps,
+                "learning_rate": learning_rate,
+                "weight_decay": 0.01,
+                "fp16": use_fp16,
+                "bf16": use_bf16,
+                "optim": "paged_adamw_8bit",
+                "per_device_train_batch_size": self.config["batch_size"],
+                "gradient_accumulation_steps": self.config.get(
                     "gradient_accumulation_steps", 1
                 ),
-                lr_scheduler_type=self.config.get(
+                "lr_scheduler_type": self.config.get(
                     "trainer_lr_scheduler_type", self.config["lr_scheduler_type"]
                 ),
-                warmup_ratio=float(self.config.get("warmup_ratio", 0.0)),
-                max_grad_norm=float(self.config.get("max_grad_norm", 1.0)),
-                save_strategy="no",  # We save manually
+                "max_grad_norm": float(self.config.get("max_grad_norm", 1.0)),
+                "save_strategy": "no",  # We save manually
+                "num_train_epochs": num_train_epochs,
+            }
+            if max_steps > 0:
+                ta_kwargs["max_steps"] = max_steps
+            else:
+                ta_kwargs["max_steps"] = -1
+            ta_kwargs = _maybe_set_warmup_args(ta_kwargs)
+            ta_kwargs = _maybe_set_dataloader_args(ta_kwargs)
+            training_args = TrainingArguments(
+                **ta_kwargs
             )
 
         legacy_eval_enabled = False
@@ -265,7 +412,45 @@ class ClientTrainer:
             legacy_eval_enabled = str(eval_mode) != "no"
 
         # 4. Setup Trainer (FedProxTrainer if mu > 0, else standard Trainer)
-        if "bert" in self.model_name.lower():
+        use_legacy_trainer = self.config.get("use_legacy_trainer", False)
+        tr_params = set(inspect.signature(Trainer.__init__).parameters)
+
+        if self.training_task == "sequence_classification":
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.model_name, **hf_from_pretrained_kwargs(self.config)
+            )
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token or tokenizer.unk_token
+            if (
+                getattr(model.config, "pad_token_id", None) is None
+                and tokenizer.pad_token_id is not None
+            ):
+                model.config.pad_token_id = tokenizer.pad_token_id
+
+            data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+            trainer_kwargs = {
+                "model": model,
+                "args": training_args,
+                "train_dataset": client_dataset,
+                "data_collator": data_collator,
+            }
+            if legacy_eval_enabled:
+                trainer_kwargs["eval_dataset"] = client_dataset
+            if use_legacy_trainer:
+                if "processing_class" in tr_params:
+                    trainer_kwargs["processing_class"] = tokenizer
+                elif "tokenizer" in tr_params:
+                    trainer_kwargs["tokenizer"] = tokenizer
+
+            if fedprox_mu > 0:
+                trainer = FedProxTrainer(
+                    global_state_dict=global_state_dict,
+                    fedprox_mu=fedprox_mu,
+                    **trainer_kwargs,
+                )
+            else:
+                trainer = Trainer(**trainer_kwargs)
+        elif "bert" in self.model_name.lower():
             tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name, **hf_from_pretrained_kwargs(self.config)
             )
@@ -292,10 +477,10 @@ class ClientTrainer:
             tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name, **hf_from_pretrained_kwargs(self.config)
             )
-            tokenizer.pad_token = tokenizer.eos_token
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token or tokenizer.unk_token
 
             # Legacy mode: don't use data_collator (like original utils.py)
-            use_legacy_trainer = self.config.get("use_legacy_trainer", False)
             if use_legacy_trainer:
                 data_collator = None
             else:
@@ -311,7 +496,6 @@ class ClientTrainer:
                 if legacy_eval_enabled:
                     trainer_kwargs["eval_dataset"] = client_dataset
                 if use_legacy_trainer:
-                    tr_params = set(inspect.signature(Trainer.__init__).parameters)
                     if "processing_class" in tr_params:
                         trainer_kwargs["processing_class"] = tokenizer
                     elif "tokenizer" in tr_params:
@@ -332,7 +516,6 @@ class ClientTrainer:
                 if legacy_eval_enabled:
                     trainer_kwargs["eval_dataset"] = client_dataset
                 if use_legacy_trainer:
-                    tr_params = set(inspect.signature(Trainer.__init__).parameters)
                     if "processing_class" in tr_params:
                         trainer_kwargs["processing_class"] = tokenizer
                     elif "tokenizer" in tr_params:
@@ -348,9 +531,9 @@ class ClientTrainer:
         # This prevents VRAM overflow on the server by not returning the whole model.
         if self.use_lora:
             cpu_adapters = {
-                name: param.to("cpu")
-                for name, param in model.state_dict().items()
-                if "lora_" in name
+                name: param.detach().to("cpu").clone()
+                for name, param in model.named_parameters()
+                if param.requires_grad
             }
         else:
             # For full fine-tuning, return the entire state dict on CPU

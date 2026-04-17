@@ -1,0 +1,1532 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+2 0 obj
+<< /Length 4505 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(Relatório Acadêmico - CIC-IDS2018 Tuesday no FL_RANSOM_LLM@page { size: A4; margin:) Tj
+T*
+(1.8cm; } body { font-family: "Liberation Serif", "DejaVu Serif", serif; color: #111827;) Tj
+T*
+(line-height: 1.5; font-size: 11pt; } h1, h2, h3 { color: #0f172a; margin-top: 1.1em;) Tj
+T*
+(margin-bottom: 0.45em; } h1 { font-size: 22pt; border-bottom: 2px solid #1e293b;) Tj
+T*
+(padding-bottom: 8px; } h2 { font-size: 16pt; border-bottom: 1px solid #cbd5e1;) Tj
+T*
+(padding-bottom: 3px; } h3 { font-size: 13pt; } p { margin: 0.45em 0; text-align:) Tj
+T*
+(justify; } ul { margin: 0.35em 0 0.65em 1.25em; } li { margin: 0.18em 0; } code {) Tj
+T*
+(background: #f1f5f9; padding: 0.12em 0.25em; border-radius: 3px; font-family:) Tj
+T*
+("Liberation Mono", monospace; font-size: 10pt; } pre { background: #f8fafc; border: 1px) Tj
+T*
+(solid #cbd5e1; padding: 10px; white-space: pre-wrap; font-family: "Liberation Mono",) Tj
+T*
+(monospace; font-size: 9.3pt; line-height: 1.35; } table { border-collapse: collapse;) Tj
+T*
+(width: 100%; margin: 0.6em 0 1em 0; font-size: 10pt; } th, td { border: 1px solid) Tj
+T*
+(#cbd5e1; padding: 6px 8px; vertical-align: top; } th { background: #e2e8f0; text-align:) Tj
+T*
+(left; } .capa { min-height: 720px; display: flex; flex-direction: column;) Tj
+T*
+(justify-content: space-between; text-align: center; page-break-after: always; } .capa h1) Tj
+T*
+({ border: none; font-size: 24pt; margin-top: 2.5cm; } .capa .subtitle { font-size: 14pt;) Tj
+T*
+(line-height: 1.6; } .capa .meta { font-size: 12pt; line-height: 1.7; margin-bottom:) Tj
+T*
+(1.5cm; } .toc { background: #f8fafc; border-left: 4px solid #2563eb; padding: 10px 12px;) Tj
+T*
+(} .ok { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 10px 12px; margin:) Tj
+T*
+(0.8em 0; } .warn { background: #fff7ed; border-left: 4px solid #ea580c; padding: 10px) Tj
+T*
+(12px; margin: 0.8em 0; } .page-break { page-break-before: always; }) Tj
+T*
+() Tj
+T*
+(Relatório Acadêmico) Tj
+T*
+(Adaptação do PipelineFL_RANSOM_LLMpara o DatasetCIC-IDS2018 -) Tj
+T*
+(Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csvProjeto:FL_RANSOM_LLMExperimento:WiFi_CICIDS2018_TuesdayData) Tj
+T*
+(de geração:26/03/2026Raiz do projeto:/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM) Tj
+T*
+() Tj
+T*
+(Resumo) Tj
+T*
+() Tj
+T*
+(Este relatório documenta, em profundidade, o processo completo de adaptação do) Tj
+T*
+(repositórioFL_RANSOM_LLMpara uso com o dataset) Tj
+T*
+(realThuesday-20-02-2018_TrafficForML_CICFlowMeter.csv, pertencente à coleção) Tj
+T*
+(CIC-IDS2018. A motivação central do trabalho foi substituir a antiga implementação de) Tj
+T*
+(Wi-Fi, originalmente baseada em arquivos sintéticos e pequenos CSVs de demonstração, por) Tj
+T*
+(um pipeline reproduzível capaz de consumir um grande arquivo de fluxos de rede, gerar) Tj
+T*
+(conjuntos de treino e teste compatíveis com a abordagem de detecção de anomalias do) Tj
+T*
+(projeto, executar treinamento federado com LoRA e avaliar os checkpoints produzidos.) Tj
+T*
+() Tj
+T*
+(A adaptação envolveu alterações na configuração do experimento, refatoração completa do) Tj
+T*
+(processador de dados, ajustes no servidor federado, inclusão de controles conservadores) Tj
+T*
+(de DataLoader no cliente e reescrita da avaliação para inferência em lotes. Também foram) Tj
+T*
+(realizadas decisões de engenharia voltadas ao ambiente de execução real, incluindo) Tj
+T*
+(limites configuráveis para reduzir o tamanho efetivo do experimento sem modificar o) Tj
+T*
+(dataset bruto e uso controlado de paralelismo em um servidor compartilhado.) Tj
+T*
+() Tj
+T*
+(No experimento final, o arquivo bruto com aproximadamente 3,8 GB foi mantido) Tj
+T*
+(emdata/wifi/raw/, enquanto o conjunto processado foi reduzido para 250.000 fluxos) Tj
+T*
+(benignos de treino e 250.000 fluxos de teste balanceados entre benignos e anômalos. O) Tj
+T*
+(melhor resultado observado ocorreu na rodada 2 comK=1, alcançandoF1 =) Tj
+T*
+({_fmt_float\(best_k1['f1_score']\)},Precisão =) Tj
+T*
+({_fmt_float\(best_k1['precision']\)},Revocação = {_fmt_float\(best_k1['recall']\)}eFPR) Tj
+T*
+(Benigna = {_fmt_float\(best_k1['benign_fpr']\)}. Esses resultados mostram que o pipeline) Tj
+T*
+(passou a funcionar adequadamente do ponto de vista técnico, ainda que a taxa de falsos) Tj
+T*
+(positivos permaneça elevada para uso operacional imediato.) Tj
+T*
+() Tj
+T*
+(Palavras-chave:detecção de anomalias, aprendizado federado, LoRA, modelos de linguagem,) Tj
+T*
+(CIC-IDS2018, fluxos de rede, otimização de desempenho.) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Length 3791 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(Abstract) Tj
+T*
+() Tj
+T*
+(This report presents a comprehensive academic account of the end-to-end adaptation of) Tj
+T*
+(theFL_RANSOM_LLMrepository to a real CIC-IDS2018 network-flow dataset. The work replaced) Tj
+T*
+(a placeholder Wi-Fi pipeline with a reproducible large-scale CSV ingestion and) Tj
+T*
+(processing path that supports benign-only training, balanced anomaly evaluation,) Tj
+T*
+(federated LoRA fine-tuning, and batched checkpoint assessment.) Tj
+T*
+() Tj
+T*
+(The implementation involved coordinated changes across configuration, data processing,) Tj
+T*
+(server orchestration, client training, and evaluation. Special attention was given to) Tj
+T*
+(performance and resource-awareness because the experiment ran on a shared server) Tj
+T*
+(equipped with two RTX 4090 GPUs and 32 logical CPUs. The resulting pipeline is) Tj
+T*
+(substantially more realistic, reproducible, and maintainable than the original) Tj
+T*
+(placeholder implementation.) Tj
+T*
+() Tj
+T*
+(1. Introdução) Tj
+T*
+() Tj
+T*
+(O repositórioFL_RANSOM_LLMfoi concebido para explorar detecção de anomalias com apoio de) Tj
+T*
+(modelos de linguagem em cenários de aprendizado federado. Entretanto, a trilha) Tj
+T*
+(originalmente associada ao dataset de Wi-Fi não estava preparada para dados reais de) Tj
+T*
+(larga escala. A implementação anterior dependia de dois arquivos) Tj
+T*
+(pequenos,benign_wifi.csveanomaly_wifi.csv, com um conjunto extremamente reduzido de) Tj
+T*
+(atributos e até mesmo geração de dados sintéticos de contingência. Tal desenho era útil) Tj
+T*
+(apenas como prova de conceito.) Tj
+T*
+() Tj
+T*
+(A necessidade prática deste trabalho surgiu com a adoção do) Tj
+T*
+(arquivoThuesday-20-02-2018_TrafficForML_CICFlowMeter.csv, que possui 84 colunas e volume) Tj
+T*
+(de aproximadamente 3,8 GB. Integrar esse dataset ao pipeline exigiu resolver múltiplos) Tj
+T*
+(problemas: padronização de caminhos, leitura de um único CSV massivo, seleção de) Tj
+T*
+(atributos relevantes, conversão do fluxo de rede em representação textual, separação) Tj
+T*
+(entre treino benigno e teste misto, compatibilidade com o pipeline federado existente e) Tj
+T*
+(avaliação em escala.) Tj
+T*
+() Tj
+T*
+(Além do desafio funcional, havia uma restrição operacional relevante: a execução se dava) Tj
+T*
+(em um servidor compartilhado por outros alunos. Dessa forma, a solução não poderia) Tj
+T*
+(simplesmente maximizar o uso de hardware de maneira agressiva. Foi necessário buscar) Tj
+T*
+(eficiência com responsabilidade, equilibrando tempo de execução, uso de CPU, uso de GPU,) Tj
+T*
+(pressão de memória e reprodutibilidade experimental.) Tj
+T*
+() Tj
+T*
+(2. Objetivos) Tj
+T*
+() Tj
+T*
+(- Substituir a antiga implementação fictícia de Wi-Fi por um pipeline compatível com o) Tj
+T*
+(  CSV real do CIC-IDS2018.) Tj
+T*
+(- Organizar o dataset bruto e os artefatos processados segundo boas práticas de) Tj
+T*
+(  reprodutibilidade.) Tj
+T*
+(- Permitir experimentos controlados por meio de limites configuráveis, sem alterar o) Tj
+T*
+(  arquivo bruto original.) Tj
+T*
+(- Preservar a filosofia do projeto: treino apenas com tráfego benigno e detecção de) Tj
+T*
+(  anomalias na avaliação.) Tj
+T*
+(- Melhorar o desempenho do pipeline, sobretudo em preprocessamento e avaliação.) Tj
+T*
+(- Executar um experimento final documentado, com resultados e interpretação técnica.) Tj
+T*
+() Tj
+T*
+(3. Caracterização do Repositório e do Cenário Inicial) Tj
+T*
+() Tj
+T*
+(Antes da refatoração, o caminho de processamento para o dataset de Wi-Fi não possuía) Tj
+T*
+(aderência ao novo conjunto de dados. O código pressupunha duas fontes separadas, uma) Tj
+T*
+(benigna e outra anômala, e trabalhava com um esquema pequeno de atributos) Tj
+T*
+(comorssi,snr,latencyethroughput. Isso inviabilizava o uso do CSV do CIC-IDS2018, que) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 3766 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(segue outra estrutura semântica e estatística.) Tj
+T*
+() Tj
+T*
+(Outro problema do cenário inicial era a ausência de uma estratégia clara para limitar o) Tj
+T*
+(tamanho do experimento sem editar o dataset original. Na prática, isso significava que,) Tj
+T*
+(ao migrar para um arquivo de milhões de linhas, o custo de preprocessamento e avaliação) Tj
+T*
+(tenderia a crescer rapidamente, dificultando iteração rápida.) Tj
+T*
+() Tj
+T*
+(Também se observou que parte do pipeline subutilizava o servidor. A avaliação era) Tj
+T*
+(majoritariamente serial, o paralelismo entre GPUs não estava ativado na configuração e a) Tj
+T*
+(fase de treino não utilizava controles de DataLoader ajustados ao ambiente) Tj
+T*
+(compartilhado.) Tj
+T*
+() Tj
+T*
+(4. Dataset Utilizado e Estratégia de Armazenamento) Tj
+T*
+() Tj
+T*
+(O dataset integrado ao projeto foi o) Tj
+T*
+(arquivoThuesday-20-02-2018_TrafficForML_CICFlowMeter.csv, pertencente à base CIC-IDS2018) Tj
+T*
+(processada para algoritmos de aprendizado de máquina. O arquivo foi armazenado) Tj
+T*
+(emdata/wifi/raw/, preservando a política de manter dados brutos imutáveis. Os artefatos) Tj
+T*
+(derivados, comotrain.csv,test.csve o dataset tokenizado, passaram a ser gerados) Tj
+T*
+(emdata/wifi/processed/.) Tj
+T*
+() Tj
+T*
+(Essa separação entreraweprocessedé fundamental para rastreabilidade experimental. Ela) Tj
+T*
+(impede que o arquivo original seja sobrescrito por transformações acidentais, reduz o) Tj
+T*
+(risco de corrupção dos dados e permite repetir o experimento a partir da mesma fonte.) Tj
+T*
+() Tj
+T*
+(Na validação inicial do arquivo foram confirmadas 84 colunas e a presença de campos) Tj
+T*
+(cruciais para a nova lógica, comoLabel,Timestamp,Src IP,Dst IP,Protocol,Flow Byts/seFlow) Tj
+T*
+(Duration. Essa checagem foi importante para confirmar a compatibilidade estrutural do) Tj
+T*
+(dataset com o novo processador.) Tj
+T*
+(Dimensões finais dos artefatos.Dados brutos: 3.8G) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/data/wifi/rawDados processados: 589M) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/data/wifi/processedResultados: 226M) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday) Tj
+T*
+() Tj
+T*
+(5. Metodologia de Adaptação do Pipeline) Tj
+T*
+() Tj
+T*
+(A adaptação foi conduzida por etapas. Primeiro, definiu-se a estratégia de organização) Tj
+T*
+(do dataset dentro do repositório. Em seguida, foi refeita a lógica de processamento para) Tj
+T*
+(ler o CSV único, normalizar rótulos e gerar conjuntos derivados. Depois disso,) Tj
+T*
+(ajustou-se o pipeline federado para operar de forma consistente com os novos artefatos.) Tj
+T*
+(Por fim, foram introduzidas otimizações de desempenho visando reduzir tempo de execução) Tj
+T*
+(e melhor aproveitar os recursos disponíveis.) Tj
+T*
+() Tj
+T*
+(Um aspecto metodológico central foi preservar a semântica original do projeto: em vez de) Tj
+T*
+(migrar para classificação supervisionada tradicional, manteve-se a lógica de detecção de) Tj
+T*
+(anomalias via modelagem do comportamento benigno. Assim, o conjunto de treino final) Tj
+T*
+(contém apenas fluxos benignos, enquanto o conjunto de teste mistura benignos e anômalos.) Tj
+T*
+() Tj
+T*
+(Outro princípio importante foi evitar alterações destrutivas nos dados de origem. Todos) Tj
+T*
+(os cortes de experimento, como limites máximos de amostras, foram implementados por) Tj
+T*
+(configuração, nunca por edição manual do CSV bruto.) Tj
+T*
+() Tj
+T*
+(6. Alterações Implementadas no Código) Tj
+T*
+() Tj
+T*
+(6.1configs/config_wifi.yaml) Tj
+T*
+() Tj
+T*
+(Foi criado e refinado um arquivo de configuração específico para o experimento com o) Tj
+T*
+(dataset CIC-IDS2018 Tuesday. Esse arquivo passou a declarar explicitamente o nome do CSV) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Length 3646 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(bruto, a coluna de rótulo, os valores considerados benignos, as colunas preferenciais) Tj
+T*
+(usadas na montagem do texto, os limites do experimento, os hiperparâmetros do) Tj
+T*
+(aprendizado federado e os parâmetros de desempenho.) Tj
+T*
+() Tj
+T*
+(Entre os parâmetros mais importantes) Tj
+T*
+(estãobenign_train_cap,test_benign_capetest_anomaly_cap, responsáveis por limitar o) Tj
+T*
+(experimento a 250.000 amostras benignas de treino e 250.000 amostras totais de) Tj
+T*
+(teste;use_parallel_trainingemax_parallel_gpus, que controlam o paralelismo entre GPUs;) Tj
+T*
+(eeval_batch_size,eval_use_autocasteeval_torch_dtype, que otimizam a avaliação.) Tj
+T*
+() Tj
+T*
+(6.2src/data_processing/wifi_processor.py) Tj
+T*
+() Tj
+T*
+(O processador de Wi-Fi foi o componente mais profundamente alterado. A nova versão) Tj
+T*
+(passou a ler um único CSV de grande porte, identificar a coluna de rótulo configurada,) Tj
+T*
+(normalizar o campoLabelpara uma forma binária adequada ao pipeline, preservar a versão) Tj
+T*
+(original do rótulo emLabel_rawe manter metadados relevantes comoFlow ID,Src IP,Dst) Tj
+T*
+(IPeTimestamp.) Tj
+T*
+() Tj
+T*
+(Também foi introduzida uma seleção flexível de atributos para a montagem do) Tj
+T*
+(campoContent. Em vez de assumir cegamente um conjunto fixo de colunas, o código passa a) Tj
+T*
+(escolher, dentre as colunas preferidas configuradas, apenas aquelas que realmente) Tj
+T*
+(existem no CSV. Isso tornou o pipeline mais robusto a pequenas variações de esquema.) Tj
+T*
+() Tj
+T*
+(Uma otimização particularmente importante foi mover a criação do campo) Tj
+T*
+(textualContentpara depois da aplicação dos limites do experimento. Antes disso, o código) Tj
+T*
+(construía texto para um volume muito maior de linhas, inclusive para exemplos que seriam) Tj
+T*
+(descartados mais tarde. Com a nova lógica, o texto só é gerado para o subconjunto) Tj
+T*
+(efetivamente utilizado na execução.) Tj
+T*
+() Tj
+T*
+(- Suporte a um único CSV bruto real emdata/wifi/raw/.) Tj
+T*
+(- Compatibilidade retroativa com os CSVs legados como fallback.) Tj
+T*
+(- Normalização robusta de rótulos benignos e anômalos.) Tj
+T*
+(- Preservação de metadados úteis para avaliação temporal.) Tj
+T*
+(- Aplicação de limites sem modificar o dataset bruto.) Tj
+T*
+(- Sanitização de padrões de IP e MAC no texto final.) Tj
+T*
+(- Geração detrain.csv,test.csve dataset tokenizado.) Tj
+T*
+() Tj
+T*
+(6.3src/federated_learning/server.py) Tj
+T*
+() Tj
+T*
+(O servidor federado já possuía um caminho de execução paralela, mas ele não estava sendo) Tj
+T*
+(usado pelo experimento. A adaptação passou a ativar esse modo via configuração e, além) Tj
+T*
+(disso, refinou o código para respeitar o parâmetromax_parallel_gpus. Isso permite) Tj
+T*
+(limitar explicitamente quantas GPUs o servidor pode usar, o que é valioso em um ambiente) Tj
+T*
+(compartilhado.) Tj
+T*
+() Tj
+T*
+(Na prática, isso tornou possível usar as duas RTX 4090 disponíveis sem deixar a lógica) Tj
+T*
+(dependente apenas da quantidade total de GPUs detectadas pela máquina.) Tj
+T*
+() Tj
+T*
+(6.4src/federated_learning/client.py) Tj
+T*
+() Tj
+T*
+(No cliente federado foram adicionados controles de DataLoader, com suporte) Tj
+T*
+(adataloader_num_workers,dataloader_pin_memoryedataloader_persistent_workers. A) Tj
+T*
+(configuração final adotou quatro workers por processo, um valor conservador para) Tj
+T*
+(melhorar a alimentação de dados sem pressionar excessivamente a CPU do servidor.) Tj
+T*
+() Tj
+T*
+(A implementação foi feita de forma compatível com diferentes versões dotransformers,) Tj
+T*
+(evitando depender de parâmetros que possam não existir em instalações mais antigas.) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 3120 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(6.5src/evaluation/evaluator.py) Tj
+T*
+() Tj
+T*
+(A avaliação recebeu a otimização mais impactante. O comportamento anterior processava) Tj
+T*
+(uma amostra por vez, em um laço serial. Isso fazia com que a GPU fosse subutilizada e) Tj
+T*
+(tornava a avaliação de centenas de milhares de fluxos muito lenta.) Tj
+T*
+() Tj
+T*
+(A nova implementação passou a fazer tokenização e inferência em lotes, com suporte a) Tj
+T*
+(autocast em CUDA e carregamento opcional do modelo em meia precisão. Além disso, o) Tj
+T*
+(código passou a liberar explicitamente objetos de modelo e limpar cache CUDA entre) Tj
+T*
+(rodadas. O resultado foi uma avaliação muito mais compatível com o volume do) Tj
+T*
+(experimento.) Tj
+T*
+() Tj
+T*
+(7. Metodologia Experimental) Tj
+T*
+() Tj
+T*
+(A metodologia final adotou um cenário controlado para equilibrar fidelidade experimental) Tj
+T*
+(e custo computacional. Todos os fluxos benignos foram embaralhados, separados em parte) Tj
+T*
+(de treino e holdout benigno, e então limitados por configuração. Os fluxos anômalos) Tj
+T*
+(também foram limitados por configuração. O conjunto de treino final passou a conter) Tj
+T*
+(apenas exemplos benignos, enquanto o conjunto de teste foi formado pela união do holdout) Tj
+T*
+(benigno com a amostra anômala.) Tj
+T*
+() Tj
+T*
+(O experimento utilizou dois clientes federados em distribuição IID, cinco rodadas de) Tj
+T*
+(treinamento, modelo baseHuggingFaceTB/SmolLM-135M, adaptação LoRA com rank 8,batch_size) Tj
+T*
+(= 2emax_steps = 20. O treino foi conduzido com agregaçãoFedAvge sem termo FedProx) Tj
+T*
+(adicional.) Tj
+T*
+() Tj
+T*
+(- Treino: 250.000 fluxos benignos.) Tj
+T*
+(- Teste: 125.000 fluxos benignos + 125.000 fluxos anômalos.) Tj
+T*
+(- Clientes: 2, com 125.000 amostras benignas para cada um.) Tj
+T*
+(- Rodadas federadas: 5.) Tj
+T*
+(- Valores de avaliação:K = 1eK = 5.) Tj
+T*
+() Tj
+T*
+(| Cliente | Amostras) Tj
+T*
+(| 0 | 125000) Tj
+T*
+(| 1 | 125000) Tj
+T*
+() Tj
+T*
+(8. Ambiente Computacional e Restrições do Servidor) Tj
+T*
+() Tj
+T*
+(O experimento foi executado em um servidor acadêmico compartilhado. Isso impôs uma) Tj
+T*
+(restrição metodológica importante: qualquer otimização precisava melhorar o desempenho) Tj
+T*
+(sem provocar saturação desnecessária de CPU, GPU ou memória.) Tj
+T*
+() Tj
+T*
+(O monitoramento realizado mostrou que, antes das otimizações, o processo utilizava) Tj
+T*
+(efetivamente apenas um núcleo de CPU e subaproveitava a segunda GPU. Essas observações) Tj
+T*
+(orientaram a decisão de ativar paralelismo conservador e melhorar a fase de avaliação.) Tj
+T*
+() Tj
+T*
+(8.1 Identificação do host) Tj
+T*
+() Tj
+T*
+(avancos\\nLinux avancos 6.17.0-19-generic #19-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar  6) Tj
+T*
+(14:02:58 UTC 2026 x86_64 GNU/Linux) Tj
+T*
+() Tj
+T*
+(8.2 CPU e memória) Tj
+T*
+() Tj
+T*
+(Architecture:                            x86_64) Tj
+T*
+(CPU op-mode\(s\):                          32-bit, 64-bit) Tj
+T*
+(Address sizes:                           46 bits physical, 48 bits virtual) Tj
+T*
+(Byte Order:                              Little Endian) Tj
+T*
+(CPU\(s\):                                  32) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 3962 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(On-line CPU\(s\) list:                     0-31) Tj
+T*
+(Vendor ID:                               GenuineIntel) Tj
+T*
+(Model name:                              13th Gen Intel\(R\) Core\(TM\) i9-13900K) Tj
+T*
+(CPU family:                              6) Tj
+T*
+(Model:                                   183) Tj
+T*
+(Thread\(s\) per core:                      2) Tj
+T*
+(Core\(s\) per socket:                      24) Tj
+T*
+(Socket\(s\):                               1) Tj
+T*
+(Stepping:                                1) Tj
+T*
+(CPU\(s\) scaling MHz:                      62%) Tj
+T*
+(CPU max MHz:                             5400.0000) Tj
+T*
+(CPU min MHz:                             800.0000) Tj
+T*
+(BogoMIPS:                                5990.40) Tj
+T*
+(Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep) Tj
+T*
+(mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx) Tj
+T*
+(pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology) Tj
+T*
+(nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx) Tj
+T*
+(est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt) Tj
+T*
+(tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb) Tj
+T*
+(ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase) Tj
+T*
+(tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt) Tj
+T*
+(sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida) Tj
+T*
+(arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke) Tj
+T*
+(waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize pconfig) Tj
+T*
+(arch_lbr ibt flush_l1d arch_capabilities) Tj
+T*
+(Virtualization:                          VT-x) Tj
+T*
+(L1d cache:                               896 KiB \(24 instances\)) Tj
+T*
+(L1i cache:                               1.3 MiB \(24 instances\)) Tj
+T*
+(L2 cache:                                32 MiB \(12 instances\)) Tj
+T*
+(L3 cache:                                36 MiB \(1 instance\)) Tj
+T*
+(NUMA node\(s\):                            1) Tj
+T*
+(NUMA node0 CPU\(s\):                       0-31) Tj
+T*
+(Vulnerability Gather data sampling:      Not affected) Tj
+T*
+(Vulnerability Ghostwrite:                Not affected) Tj
+T*
+(Vulnerability Indirect target selection: Not affected) Tj
+T*
+(Vulnerability Itlb multihit:             Not affected) Tj
+T*
+(Vulnerability L1tf:                      Not affected) Tj
+T*
+(Vulnerability Mds:                       Not affected) Tj
+T*
+(Vulnerability Meltdown:                  Not affected) Tj
+T*
+(Vulnerability Mmio stale data:           Not affected) Tj
+T*
+(Vulnerability Old microcode:             Not affected) Tj
+T*
+(Vulnerability Reg file data sampling:    Mitigation; Clear Register File) Tj
+T*
+(Vulnerability Retbleed:                  Not affected) Tj
+T*
+(Vulnerability Spec rstack overflow:      Not affected) Tj
+T*
+(Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled) Tj
+T*
+(via prctl) Tj
+T*
+(Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user) Tj
+T*
+(pointer sanitization) Tj
+T*
+(Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB) Tj
+T*
+(conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S) Tj
+T*
+(Vulnerability Srbds:                     Not affected) Tj
+T*
+(Vulnerability Tsa:                       Not affected) Tj
+T*
+(Vulnerability Tsx async abort:           Not affected) Tj
+T*
+(Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace) Tj
+T*
+() Tj
+T*
+(total        used        free      shared  buff/cache   available) Tj
+T*
+(Mem:           123Gi        50Gi       9.9Gi        77Mi        64Gi        72Gi) Tj
+T*
+(Swap:           30Gi       156Ki        30Gi) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 3308 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+() Tj
+T*
+(8.3 GPU) Tj
+T*
+() Tj
+T*
+(NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure) Tj
+T*
+(that the latest NVIDIA driver is installed and running.) Tj
+T*
+() Tj
+T*
+(9. Otimizações de Desempenho) Tj
+T*
+() Tj
+T*
+(As otimizações implementadas foram guiadas por evidências coletadas durante a execução) Tj
+T*
+(no servidor. Em vez de tentar escalar indiscriminadamente, optou-se por uma abordagem) Tj
+T*
+(com bom custo-benefício para o contexto observado.) Tj
+T*
+() Tj
+T*
+(A primeira otimização relevante foi adiar a geração do campo textualContentaté depois da) Tj
+T*
+(aplicação dos limites configurados. Isso reduziu trabalho desnecessário no) Tj
+T*
+(preprocessamento. A segunda foi ativar o treino paralelo entre duas GPUs, respeitando um) Tj
+T*
+(limite explícito. A terceira foi acrescentar workers de DataLoader em quantidade) Tj
+T*
+(moderada. A quarta, e mais impactante, foi transformar a avaliação em um processo em) Tj
+T*
+(lotes, com suporte a meia precisão.) Tj
+T*
+() Tj
+T*
+(- Paralelismo controlado entre duas GPUs.) Tj
+T*
+(- Quatro workers de DataLoader por processo.) Tj
+T*
+(- pin_memoryepersistent_workershabilitados.) Tj
+T*
+(- Avaliação comeval_batch_size = 4.) Tj
+T*
+(- Uso defloat16e autocast na avaliação.) Tj
+T*
+(- Construção tardia do campoContent.Observação importante.No cenário final, o treino) Tj
+T*
+(  paralelo melhorou a utilização de hardware, mas não reduziu o tempo total de treino) Tj
+T*
+(  em relação ao cenário pequeno anterior, devido ao custo de inicialização de) Tj
+T*
+(  processos e carregamento duplicado do modelo. O maior ganho prático de velocidade) Tj
+T*
+(  veio da avaliação em lotes.) Tj
+T*
+() Tj
+T*
+(10. Execução do Experimento Final) Tj
+T*
+() Tj
+T*
+(Após a limpeza dos artefatos derivados, o pipeline foi executado novamente desde o) Tj
+T*
+(início com a configuração consolidada. O preprocessamento leu o CSV bruto, confirmou 16) Tj
+T*
+(colunas efetivamente usadas na construção do texto, aplicou os limites definidos e) Tj
+T*
+(geroutrain.csvetest.csvcom as dimensões esperadas.) Tj
+T*
+() Tj
+T*
+(A tokenização do conjunto de treino foi concluída e o servidor federado dividiu os dados) Tj
+T*
+(entre dois clientes. O treinamento ocorreu em modo paralelo, utilizando as duas GPUs. Em) Tj
+T*
+(seguida, a avaliação percorreu os checkpoints das cinco rodadas, gerando métricas de F1,) Tj
+T*
+(precisão, revocação, FPR benigna e métricas temporais.) Tj
+T*
+() Tj
+T*
+(11. Resultados) Tj
+T*
+() Tj
+T*
+(11.1 Melhor checkpoint por configuração top-k) Tj
+T*
+() Tj
+T*
+(| K | Melhor Rodada | F1 | Precisão | Revocação | FPR Benigna | Limiar) Tj
+T*
+(| 1 | 2 | 0.6949 | 0.5352 | 0.9907 | 0.8604 | 0.88) Tj
+T*
+(| 5 | 2 | 0.6751 | 0.5143 | 0.9821 | 0.9275 | 0.97) Tj
+T*
+() Tj
+T*
+(O melhor resultado global foi obtido emrodada 2, comK = 1eF1 = 0.6949.) Tj
+T*
+() Tj
+T*
+(11.2 Evolução do treinamento) Tj
+T*
+() Tj
+T*
+(| Rodada | Loss Cliente 0 | Loss Cliente 1 | Tempo da Rodada \(s\) | Interpretação) Tj
+T*
+(| 1 | 1.9170 | 1.9170 | 25 | Parallel training initialized and both GPUs were engaged.) Tj
+T*
+(| 2 | 0.8371 | 0.8640 | 22 | Fast loss drop indicates that the model quickly learned the benign-flow distribution.) Tj
+T*
+(| 3 | 0.6368 | 0.6999 | 21 | Training entered a more stable region with diminishing gains.) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 3356 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(| 4 | 0.6569 | 0.6474 | 21 | Small oscillation, still within the same stability band.) Tj
+T*
+(| 5 | 0.5925 | 0.6257 | 22 | Lowest observed training losses, but evaluation did not improve materially beyond round 2.) Tj
+T*
+() Tj
+T*
+(11.3 Métricas de comunicação) Tj
+T*
+() Tj
+T*
+(| Rodada | Clientes Selecionados | Bytes Totais | Bytes Médios/Cliente | Parâmetros | Agregação) Tj
+T*
+(| 1 | 2 | 3686400 | 1843200.0 | 921600 | FedAvg) Tj
+T*
+(| 2 | 2 | 3686400 | 1843200.0 | 921600 | FedAvg) Tj
+T*
+(| 3 | 2 | 3686400 | 1843200.0 | 921600 | FedAvg) Tj
+T*
+(| 4 | 2 | 3686400 | 1843200.0 | 921600 | FedAvg) Tj
+T*
+(| 5 | 2 | 3686400 | 1843200.0 | 921600 | FedAvg) Tj
+T*
+() Tj
+T*
+(11.4 Tabela completa de F1) Tj
+T*
+() Tj
+T*
+(| Rodada | K | Limiar | F1 | Precisão | Revocação | FPR Benigna) Tj
+T*
+(| 1 | 1 | 0.76 | 0.6753 | 0.5122 | 0.9907 | 0.9436) Tj
+T*
+(| 1 | 5 | 0.92 | 0.6703 | 0.5053 | 0.9951 | 0.9741) Tj
+T*
+(| 2 | 1 | 0.88 | 0.6949 | 0.5352 | 0.9907 | 0.8604) Tj
+T*
+(| 2 | 5 | 0.97 | 0.6751 | 0.5143 | 0.9821 | 0.9275) Tj
+T*
+(| 3 | 1 | 0.89 | 0.6941 | 0.5342 | 0.9904 | 0.8635) Tj
+T*
+(| 3 | 5 | 0.98 | 0.6725 | 0.5083 | 0.9935 | 0.9611) Tj
+T*
+(| 4 | 1 | 0.92 | 0.6833 | 0.5198 | 0.9967 | 0.9207) Tj
+T*
+(| 4 | 5 | 0.98 | 0.6745 | 0.5100 | 0.9956 | 0.9565) Tj
+T*
+(| 5 | 1 | 0.92 | 0.6938 | 0.5315 | 0.9988 | 0.8803) Tj
+T*
+(| 5 | 5 | 0.98 | 0.6740 | 0.5097 | 0.9945 | 0.9565) Tj
+T*
+() Tj
+T*
+(11.5 Métricas temporais) Tj
+T*
+() Tj
+T*
+(| Rodada | K | TTD Médio \(s\) | TTD Mediano \(s\) | Cobertura | FPR Benigna | Dispositivos Atacados) Tj
+T*
+(| 1 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.9436 | 10) Tj
+T*
+(| 1 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9741 | 10) Tj
+T*
+(| 2 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8604 | 10) Tj
+T*
+(| 2 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9275 | 10) Tj
+T*
+(| 3 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8635 | 10) Tj
+T*
+(| 3 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9611 | 10) Tj
+T*
+(| 4 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.9207 | 10) Tj
+T*
+(| 4 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9565 | 10) Tj
+T*
+(| 5 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.8803 | 10) Tj
+T*
+(| 5 | 5 | 0.0000 | 0.0000 | 1.0000 | 0.9565 | 10) Tj
+T*
+() Tj
+T*
+(12. Discussão) Tj
+T*
+() Tj
+T*
+(Os resultados mostram que a adaptação do pipeline foi bem-sucedida em termos de) Tj
+T*
+(engenharia. O repositório passou a consumir um dataset real, de grande porte, e produziu) Tj
+T*
+(artefatos consistentes de treino, teste, tokenização, treinamento federado e avaliação.) Tj
+T*
+(Além disso, a curva de loss sugere aprendizagem rápida do padrão benigno, com queda) Tj
+T*
+(acentuada entre as rodadas 1 e 2.) Tj
+T*
+() Tj
+T*
+(Do ponto de vista de desempenho preditivo, o melhor resultado emK=1ocorreu na rodada 2,) Tj
+T*
+(comF1 = 0.6949,Precisão = 0.5352eRevocação = 0.9907. Isso indica que o modelo realmente) Tj
+T*
+(aprendeu um sinal de separação entre normalidade e anomalia. Entretanto, o valor deFPR) Tj
+T*
+(Benigna = 0.8604ainda é extremamente alto para um detector operacional.) Tj
+T*
+() Tj
+T*
+(EmK=5, o melhor resultado foiF1 = 0.6751, inferior ao deK=1. Isso sugere que, para esta) Tj
+T*
+(configuração específica de experimento, o top-1 foi mais informativo do que o top-5.) Tj
+T*
+() Tj
+T*
+(As métricas temporais mostraram cobertura total e tempo de detecção nulo. Embora isso) Tj
+T*
+(possa soar excelente, essa leitura precisa ser relativizada: um detector que acusa) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Length 3415 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(rapidamente quase tudo também pode manter alto nível de falsos positivos. Assim, o) Tj
+T*
+(excelente TTD deve ser interpretado em conjunto com a FPR benigna, e não isoladamente.) Tj
+T*
+() Tj
+T*
+(13. Limitações e Ameaças à Validade) Tj
+T*
+() Tj
+T*
+(- O limiar foi escolhido em modof1_max, o que é útil para análise exploratória, mas) Tj
+T*
+(  menos realista do que calibração operacional em conjunto separado.) Tj
+T*
+(- O experimento usou um subconjunto controlado do dataset, o que reduz custo, mas também) Tj
+T*
+(  limita representatividade.) Tj
+T*
+(- O treino continuou baseado apenas em tráfego benigno, o que é coerente com a proposta,) Tj
+T*
+(  mas pode restringir alternativas supervisionadas.) Tj
+T*
+(- O conjunto de avaliação foi balanceado artificialmente por limites configurados, o que) Tj
+T*
+(  simplifica comparação, porém não reflete necessariamente a prevalência real de) Tj
+T*
+(  anomalias em produção.) Tj
+T*
+(- O relatório interpreta o estado final do código e os logs observados; mudanças) Tj
+T*
+(  posteriores no repositório podem alterar parte das conclusões.) Tj
+T*
+() Tj
+T*
+(14. Trabalhos Futuros) Tj
+T*
+() Tj
+T*
+(- Criar um conjunto de calibração benigno e selecionar limiar por meta de FPR, não) Tj
+T*
+(  apenas por maximização de F1.) Tj
+T*
+(- Testar novas combinações de atributos no campoContent.) Tj
+T*
+(- Aumentar gradualmentebenign_train_cappara verificar o efeito de mais dados de) Tj
+T*
+(  normalidade.) Tj
+T*
+(- Comparar distribuição IID com estratégias não IID entre clientes.) Tj
+T*
+(- Executar múltiplas seeds para avaliar estabilidade dos resultados.) Tj
+T*
+(- Investigar formas adicionais de redução de falsos positivos.) Tj
+T*
+() Tj
+T*
+(15. Conclusão) Tj
+T*
+() Tj
+T*
+(Este trabalho transformou a trilha de Wi-Fi do repositórioFL_RANSOM_LLMde uma) Tj
+T*
+(implementação demonstrativa para um pipeline funcional sobre dados reais de fluxo de) Tj
+T*
+(rede. A integração do dataset CIC-IDS2018 Tuesday foi concluída com organização adequada) Tj
+T*
+(dos dados, refatoração do processamento, ajustes no treinamento federado, otimizações de) Tj
+T*
+(desempenho e avaliação consistente.) Tj
+T*
+() Tj
+T*
+(O experimento final comprova que o sistema está operacional e que o modelo aprende) Tj
+T*
+(rapidamente padrões de tráfego benigno. O melhor checkpoint surgiu cedo, na rodada 2, o) Tj
+T*
+(que aponta convergência rápida sob o orçamento de treino adotado. Ainda assim, a taxa de) Tj
+T*
+(falsos positivos sobre tráfego benigno permanece elevada, indicando que a base atual) Tj
+T*
+(deve ser entendida como um baseline funcional e não como detector pronto para) Tj
+T*
+(implantação.) Tj
+T*
+() Tj
+T*
+(Do ponto de vista de engenharia, o ganho mais relevante foi tornar o repositório) Tj
+T*
+(reproduzível, escalável para um dataset real e significativamente mais eficiente na fase) Tj
+T*
+(de avaliação. Essa base agora permite ciclos futuros de experimentação mais rápidos,) Tj
+T*
+(mais controlados e metodologicamente mais sólidos.) Tj
+T*
+() Tj
+T*
+(Apêndice A. Inventário de Arquivos) Tj
+T*
+() Tj
+T*
+(FL_RANSOM_LLM/) Tj
+T*
+(??? configs/config_wifi.yaml) Tj
+T*
+(??? data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv) Tj
+T*
+(??? data/wifi/processed/train.csv) Tj
+T*
+(??? data/wifi/processed/test.csv) Tj
+T*
+(??? data/wifi/processed/tokenized/) Tj
+T*
+(??? results/WiFi_CICIDS2018_Tuesday/) Tj
+T*
+(?   ??? client_data/client_data_metadata.json) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Length 2033 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(?   ??? communication_metrics.csv) Tj
+T*
+(?   ??? f1_scores.csv) Tj
+T*
+(?   ??? temporal_metrics.csv) Tj
+T*
+(?   ??? round_0 ... round_5/) Tj
+T*
+(??? src/data_processing/wifi_processor.py) Tj
+T*
+(??? src/federated_learning/client.py) Tj
+T*
+(??? src/federated_learning/server.py) Tj
+T*
+(??? src/evaluation/evaluator.py) Tj
+T*
+(??? docs/) Tj
+T*
+(    ??? generate_wifi_report.py) Tj
+T*
+(    ??? generate_wifi_report_academic_ptbr.py) Tj
+T*
+(    ??? WiFi_CICIDS2018_Technical_Report.pdf) Tj
+T*
+(    ??? Relatorio_Academico_CICIDS2018_WiFi_PTBR.pdf) Tj
+T*
+() Tj
+T*
+(Apêndice B. Configuração Completa do Experimento) Tj
+T*
+() Tj
+T*
+(simulation_name: "WiFi_CICIDS2018_Tuesday") Tj
+T*
+() Tj
+T*
+(dataset_name: "wifi") Tj
+T*
+(description: "WiFi/network-flow anomaly detection using the CIC-IDS2018 Tuesday flow) Tj
+T*
+(CSV.") Tj
+T*
+() Tj
+T*
+(data_base_path: "./data/") Tj
+T*
+(results_path: "./results/") Tj
+T*
+() Tj
+T*
+(# Raw dataset placement:) Tj
+T*
+(#   data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv) Tj
+T*
+(raw_csv_file: "Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv") Tj
+T*
+(label_column: "Label") Tj
+T*
+(normal_label_values: ["Benign"]) Tj
+T*
+() Tj
+T*
+(# Flow-to-text conversion:) Tj
+T*
+(# The processor will use whichever of these columns are actually present in the CSV.) Tj
+T*
+(wifi_content_columns:) Tj
+T*
+(  - "Protocol") Tj
+T*
+(  - "Flow Duration") Tj
+T*
+(  - "Tot Fwd Pkts") Tj
+T*
+(  - "Tot Bwd Pkts") Tj
+T*
+(  - "TotLen Fwd Pkts") Tj
+T*
+(  - "TotLen Bwd Pkts") Tj
+T*
+(  - "Flow Byts/s") Tj
+T*
+(  - "Flow Bytes/s") Tj
+T*
+(  - "Flow Pkts/s") Tj
+T*
+(  - "Flow IAT Mean") Tj
+T*
+(  - "Fwd IAT Mean") Tj
+T*
+(  - "Bwd IAT Mean") Tj
+T*
+(  - "Pkt Len Mean") Tj
+T*
+(  - "Pkt Len Var") Tj
+T*
+(  - "SYN Flag Cnt") Tj
+T*
+(  - "ACK Flag Cnt") Tj
+T*
+(  - "PSH Flag Cnt") Tj
+T*
+() Tj
+T*
+(# Split strategy:) Tj
+T*
+(# Only benign traffic is used for training.) Tj
+T*
+(train_benign_fraction: 0.8) Tj
+T*
+(benign_calibration_fraction: 0.0) Tj
+T*
+(random_seed: 42) Tj
+T*
+(test_balance: false) Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Length 1943 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+() Tj
+T*
+(# Quick-test controls:) Tj
+T*
+(# - raw_nrows reads only the first N rows of the raw CSV \(fastest, but less) Tj
+T*
+(representative\).) Tj
+T*
+(# - *_cap limits the size of each processed split without changing the raw dataset.) Tj
+T*
+(# For full runs, keep these as null.) Tj
+T*
+(raw_nrows: null) Tj
+T*
+(benign_train_cap: 250000) Tj
+T*
+(calibration_benign_cap: null) Tj
+T*
+(test_benign_cap: 125000) Tj
+T*
+(test_anomaly_cap: 125000) Tj
+T*
+() Tj
+T*
+(model_name: "HuggingFaceTB/SmolLM-135M") Tj
+T*
+() Tj
+T*
+(lora: true) Tj
+T*
+(lora_rank: 8) Tj
+T*
+(lora_alpha_multiplier: 2) Tj
+T*
+(lora_dropout: 0.05) Tj
+T*
+() Tj
+T*
+(use_parallel_training: true) Tj
+T*
+(max_parallel_gpus: 2) Tj
+T*
+() Tj
+T*
+(num_rounds: 5) Tj
+T*
+(num_clients: 2) Tj
+T*
+(client_frac: 1.0) Tj
+T*
+() Tj
+T*
+(max_steps: 20) Tj
+T*
+(batch_size: 2) Tj
+T*
+(dataloader_num_workers: 4) Tj
+T*
+(dataloader_pin_memory: true) Tj
+T*
+(dataloader_persistent_workers: true) Tj
+T*
+(initial_lr: 0.001) Tj
+T*
+(lr_scheduler_type: "constant") Tj
+T*
+(warmup_steps: 0) Tj
+T*
+() Tj
+T*
+(force_reprocess_data: true) Tj
+T*
+(evaluator_version: "new") Tj
+T*
+(eval_batch_size: 4) Tj
+T*
+(eval_use_autocast: true) Tj
+T*
+(eval_torch_dtype: "float16") Tj
+T*
+() Tj
+T*
+(top_k_values: [1, 5]) Tj
+T*
+(threshold_metric: "top1") Tj
+T*
+(threshold_strategy: "f1_max") Tj
+T*
+(f1_threshold_steps: 101) Tj
+T*
+() Tj
+T*
+(Apêndice C. Comandos de Reprodução) Tj
+T*
+() Tj
+T*
+(cd ~/Artigo-LANC-Thiago/FL_RANSOM_LLM\\nsource venv/bin/activate\\nmkdir -p data/wifi/raw) Tj
+T*
+(data/wifi/processed\\nwget -O) Tj
+T*
+(data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv) Tj
+T*
+(\\"https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv\\"\\npython) Tj
+T*
+(main.py --config configs/config_wifi.yaml) Tj
+T*
+() Tj
+T*
+(Apêndice D. Tabela de Conteúdo do Relatório) Tj
+T*
+() Tj
+T*
+(Capa) Tj
+T*
+(Resumo) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Length 1699 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(Abstract) Tj
+T*
+(1. Introdução) Tj
+T*
+(2. Objetivos) Tj
+T*
+(3. Caracterização do Repositório e do Cenário Inicial) Tj
+T*
+(4. Dataset Utilizado e Estratégia de Armazenamento) Tj
+T*
+(5. Metodologia de Adaptação do Pipeline) Tj
+T*
+(6. Alterações Implementadas no Código) Tj
+T*
+(7. Metodologia Experimental) Tj
+T*
+(8. Ambiente Computacional e Restrições do Servidor) Tj
+T*
+(9. Otimizações de Desempenho) Tj
+T*
+(10. Execução do Experimento Final) Tj
+T*
+(11. Resultados) Tj
+T*
+(12. Discussão) Tj
+T*
+(13. Limitações e Ameaças à Validade) Tj
+T*
+(14. Trabalhos Futuros) Tj
+T*
+(15. Conclusão) Tj
+T*
+(Apêndice A. Inventário de Arquivos) Tj
+T*
+(Apêndice B. Configuração Completa) Tj
+T*
+(Apêndice C. Comandos de Reprodução) Tj
+T*
+() Tj
+T*
+(Apêndice E. Localização dos Arquivos Gerados) Tj
+T*
+() Tj
+T*
+(HTML:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/docs/Relatorio_Academico_CICIDS2018_WiFi_PTBR.html\\nPDF:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/docs/Relatorio_Academico_CICIDS2018_WiFi_PTBR.pdf\\nConfig:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/configs/config_wifi.yaml\\nResultados F1:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday/f1_scores.csv\\nResultados) Tj
+T*
+(Temporais:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday/temporal_metrics.csv\\nComunicação:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday/communication_metrics.csv\\nMetadados) Tj
+T*
+(de clientes:) Tj
+T*
+(/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday/client_data/client_data_metadata.json) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+14 0 obj
+<< /Type /Pages /Kids [15 0 R 16 0 R 17 0 R 18 0 R 19 0 R 20 0 R 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 26 0 R] /Count 12 >>
+endobj
+15 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+16 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 3 0 R >>
+endobj
+17 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+18 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 5 0 R >>
+endobj
+19 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+20 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 7 0 R >>
+endobj
+21 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+22 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 9 0 R >>
+endobj
+23 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+24 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 11 0 R >>
+endobj
+25 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 12 0 R >>
+endobj
+26 0 obj
+<< /Type /Page /Parent 14 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 13 0 R >>
+endobj
+27 0 obj
+<< /Type /Catalog /Pages 14 0 R >>
+endobj
+xref
+0 28
+0000000000 65535 f 
+0000000015 00000 n 
+0000000083 00000 n 
+0000004640 00000 n 
+0000008483 00000 n 
+0000012301 00000 n 
+0000015999 00000 n 
+0000019171 00000 n 
+0000023185 00000 n 
+0000026545 00000 n 
+0000029953 00000 n 
+0000033421 00000 n 
+0000035507 00000 n 
+0000037503 00000 n 
+0000039255 00000 n 
+0000039392 00000 n 
+0000039520 00000 n 
+0000039648 00000 n 
+0000039776 00000 n 
+0000039904 00000 n 
+0000040032 00000 n 
+0000040160 00000 n 
+0000040288 00000 n 
+0000040416 00000 n 
+0000040545 00000 n 
+0000040674 00000 n 
+0000040803 00000 n 
+0000040932 00000 n 
+trailer
+<< /Size 28 /Root 27 0 R >>
+startxref
+40983
+%%EOF

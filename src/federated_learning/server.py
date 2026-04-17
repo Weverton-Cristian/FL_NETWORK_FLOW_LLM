@@ -35,6 +35,16 @@ def train_client_process(args):
     """
     client_id, config, round_num, learning_rate, gpu_id = args
 
+    # Derive a stable per-client/per-round seed so local training remains
+    # reproducible even when clients run in spawned worker processes.
+    base_seed = int(config.get("random_seed", 42))
+    derived_seed = base_seed + (int(round_num) * 1000) + int(client_id)
+    random.seed(derived_seed)
+    np.random.seed(derived_seed)
+    torch.manual_seed(derived_seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(derived_seed)
+
     # Define qual GPU este processo deve usar
     if torch.cuda.is_available():
         torch.cuda.set_device(gpu_id)
@@ -222,6 +232,7 @@ class FederatedServer:
 
         num_clients = self.config["num_clients"]
         indices = list(range(len(dataset)))
+        base_seed = int(self.config.get("random_seed", 42))
 
         legacy_split = bool(self.config.get("legacy_client_split", False))
         legacy_seed = self.config.get("legacy_seed")
@@ -231,7 +242,8 @@ class FederatedServer:
         else:
             # Default behavior: shuffle indices before round-robin.
             if legacy_seed is None:
-                random.shuffle(indices)
+                rng = random.Random(base_seed)
+                rng.shuffle(indices)
             else:
                 rng = random.Random(int(legacy_seed))
                 rng.shuffle(indices)
@@ -310,7 +322,8 @@ class FederatedServer:
                     ip_to_indices.setdefault(ip, []).append(idx)
 
                 unique_ips = list(ip_to_indices.keys())
-                random.shuffle(unique_ips)
+                rng = random.Random(base_seed)
+                rng.shuffle(unique_ips)
 
                 for i, ip in enumerate(unique_ips):
                     client_id = i % num_clients
@@ -356,11 +369,11 @@ class FederatedServer:
             return self.config["initial_lr"]
 
     def _get_adapters(self, model):
-        """Extracts LoRA adapter weights from a model."""
+        """Extracts all trainable weights from a parameter-efficient model."""
         return {
             name: param.data.clone()
             for name, param in model.named_parameters()
-            if "lora_" in name
+            if param.requires_grad
         }
 
     def _set_adapters(self, model, aggregated_adapters):
@@ -424,14 +437,37 @@ class FederatedServer:
             }
             self.global_model.load_state_dict(gpu_aggregated_weights)
 
+    def _abort_if_round_failed(
+        self,
+        round_num,
+        selected_client_ids,
+        successful_client_ids,
+        failure_messages=None,
+    ):
+        if successful_client_ids:
+            return
+
+        details = ""
+        if failure_messages:
+            preview = " | ".join(str(msg) for msg in failure_messages[:3])
+            details = f" Sample failures: {preview}"
+
+        raise RuntimeError(
+            f"Round {round_num} aborted: all selected clients failed "
+            f"({selected_client_ids}). No aggregation was performed and continuing "
+            f"would produce invalid checkpoints.{details}"
+        )
+
     def _select_clients_for_round(self, round_num):
         """
         Selects clients for the current round according to the configured strategy.
         Supports uniform random selection and selection proportional to local data size.
         """
         num_clients = self.config["num_clients"]
-        num_selected_clients = int(num_clients * self.config["client_frac"])
+        requested = int(num_clients * self.config["client_frac"])
+        num_selected_clients = max(1, min(num_clients, requested))
         all_clients = list(range(num_clients))
+        base_seed = int(self.config.get("random_seed", 42))
 
         strategy = self.config.get("client_selection_strategy", "uniform")
 
@@ -458,7 +494,7 @@ class FederatedServer:
                 num_selected_clients = len(eligible_clients)
 
             # Weighted sampling without replacement.
-            rng = np.random.default_rng(seed=int(round_num))
+            rng = np.random.default_rng(seed=base_seed + int(round_num))
             selected_clients_ids = rng.choice(
                 np.array(eligible_clients, dtype=int),
                 size=int(num_selected_clients),
@@ -474,13 +510,14 @@ class FederatedServer:
         if bool(self.config.get("legacy_client_selection_systemrandom", False)):
             legacy_seed = self.config.get("legacy_seed")
             if legacy_seed is None:
-                rs = random.SystemRandom()
+                rs = random.Random(base_seed + int(round_num))
                 selected_clients_ids = rs.sample(all_clients, num_selected_clients)
             else:
                 rng = random.Random(int(legacy_seed) + int(round_num))
                 selected_clients_ids = rng.sample(all_clients, num_selected_clients)
         else:
-            selected_clients_ids = random.sample(all_clients, num_selected_clients)
+            rng = random.Random(base_seed + int(round_num))
+            selected_clients_ids = rng.sample(all_clients, num_selected_clients)
         print(f"Client selection strategy 'uniform' selected: {selected_clients_ids}")
         return selected_clients_ids
 
@@ -522,13 +559,26 @@ class FederatedServer:
 
             client_weights_list = []
             successful_client_ids = []
+            failure_messages = []
             current_lr = self._get_learning_rate(round_num)
             for client_id in selected_clients_ids:
                 client_trainer = ClientTrainer(client_id, self.config)
-                cpu_weights = client_trainer.train(round_num, current_lr)
-                if cpu_weights:
-                    client_weights_list.append(cpu_weights)
-                    successful_client_ids.append(client_id)
+                try:
+                    cpu_weights = client_trainer.train(round_num, current_lr)
+                    if cpu_weights:
+                        client_weights_list.append(cpu_weights)
+                        successful_client_ids.append(client_id)
+                except Exception as e:
+                    msg = f"client_{client_id}: {e}"
+                    failure_messages.append(msg)
+                    print(f"Erro ao treinar cliente: {msg}")
+
+            self._abort_if_round_failed(
+                round_num,
+                selected_clients_ids,
+                successful_client_ids,
+                failure_messages,
+            )
 
             print("Aggregating client models...")
             self._aggregate_models(client_weights_list, successful_client_ids)
@@ -567,7 +617,9 @@ class FederatedServer:
     def _run_parallel_training(self):
         """Executes training in parallel across multiple GPUs."""
         print("--- Running in Parallel Mode ---")
-        num_gpus = torch.cuda.device_count()
+        available_gpus = torch.cuda.device_count()
+        configured_max_gpus = int(self.config.get("max_parallel_gpus", available_gpus))
+        num_gpus = min(available_gpus, configured_max_gpus)
         if num_gpus == 0:
             print("AVISO: Nenhuma GPU encontrada. Voltando para o modo sequencial.")
             self._run_sequential_training()
@@ -602,6 +654,7 @@ class FederatedServer:
 
             client_weights_list = []
             successful_client_ids = []
+            failure_messages = []
             current_lr = self._get_learning_rate(round_num)
 
             # Mover o modelo global para a CPU para liberar VRAM para os clientes
@@ -629,10 +682,19 @@ class FederatedServer:
                                 client_weights_list.append(cpu_weights)
                                 successful_client_ids.append(client_id)
                         except Exception as e:
-                            print(f"Erro ao treinar cliente: {e}")
+                            msg = f"client_{client_id}: {e}"
+                            failure_messages.append(msg)
+                            print(f"Erro ao treinar cliente: {msg}")
 
             # Mover o modelo de volta para a GPU para agregação
             self.global_model.to(self.device)
+
+            self._abort_if_round_failed(
+                round_num,
+                selected_clients_ids,
+                successful_client_ids,
+                failure_messages,
+            )
 
             print("Aggregating client models...")
             self._aggregate_models(client_weights_list, successful_client_ids)

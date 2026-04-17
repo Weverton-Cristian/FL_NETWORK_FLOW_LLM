@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Analise Automatizada - WiFi_CICIDS2018_Tuesday_700k</title>
+  <style>
+    @page { size: A4; margin: 1.4cm; }
+    body { font-family: "Liberation Serif", "DejaVu Serif", serif; color: #111; line-height: 1.45; font-size: 11pt; }
+    h1, h2, h3 { color: #102a43; }
+    table { border-collapse: collapse; width: 100%; margin: 0.7em 0 1em 0; font-size: 10pt; }
+    th, td { border: 1px solid #cbd2d9; padding: 6px 8px; vertical-align: top; }
+    th { background: #eaf2f8; text-align: left; }
+    code { background: #f0f4f8; padding: 0.12em 0.25em; border-radius: 3px; }
+    pre { background: #f8fafc; border: 1px solid #d9e2ec; padding: 10px; white-space: pre-wrap; }
+    .note { background: #fffbea; border-left: 4px solid #f0b429; padding: 10px 12px; margin: 0.8em 0; }
+  </style>
+</head>
+<body>
+  <h1>Analise Automatizada do Experimento</h1>
+  <p><strong>Experimento:</strong> <code>WiFi_CICIDS2018_Tuesday_700k</code></p>
+  <p><strong>Diretorio de resultados:</strong> <code>/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday_700k</code></p>
+
+  <h2>Melhor Resultado</h2>
+  <table><thead><tr><th>Rodada</th><th>K</th><th>Threshold</th><th>Limiar</th><th>F1</th><th>Precisao</th><th>Recall</th><th>Benign FPR</th></tr></thead><tbody><tr><td>3</td><td>1</td><td>f1_max</td><td>0.9000</td><td>0.6962</td><td>0.5367</td><td>0.9906</td><td>0.8551</td></tr></tbody></table>
+
+  <h2>Melhor Rodada por K</h2>
+  <table><thead><tr><th>K</th><th>Melhor Rodada</th><th>F1</th><th>Precisao</th><th>Recall</th><th>Benign FPR</th></tr></thead><tbody><tr><td>1</td><td>3</td><td>0.6962</td><td>0.5367</td><td>0.9906</td><td>0.8551</td></tr>
+<tr><td>5</td><td>5</td><td>0.6754</td><td>0.5156</td><td>0.9790</td><td>0.9198</td></tr></tbody></table>
+
+  <h2>Splits Utilizados</h2>
+  <table><thead><tr><th>Split</th><th>Total</th><th>Benignos</th><th>Anomalos</th></tr></thead><tbody><tr><td>train</td><td>560000</td><td>560000</td><td>0</td></tr>
+<tr><td>test</td><td>140000</td><td>70000</td><td>70000</td></tr>
+<tr><td>calibration</td><td>35000</td><td>35000</td><td>0</td></tr></tbody></table>
+
+  <h2>Observacoes</h2>
+  <ul><li>O detector está muito sensível: encontra quase todos os anômalos, mas ainda produz muitos falsos positivos benignos.</li><li>A melhor rodada apareceu no meio do treino, indicando aprendizado contínuo sem saturação imediata.</li></ul>
+
+  
+
+  <h2>Metricas Temporais</h2>
+  <table><thead><tr><th>Rodada</th><th>K</th><th>Cobertura</th><th>Benign FPR</th><th>TTD Medio (s)</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1.0000</td><td>0.9691</td><td>0.0000</td></tr>
+<tr><td>1</td><td>5</td><td>1.0000</td><td>0.9699</td><td>0.0000</td></tr>
+<tr><td>2</td><td>1</td><td>1.0000</td><td>0.8801</td><td>0.0000</td></tr>
+<tr><td>2</td><td>5</td><td>1.0000</td><td>0.9660</td><td>0.0000</td></tr>
+<tr><td>3</td><td>1</td><td>1.0000</td><td>0.8551</td><td>0.0000</td></tr>
+<tr><td>3</td><td>5</td><td>1.0000</td><td>0.9520</td><td>0.0000</td></tr>
+<tr><td>4</td><td>1</td><td>1.0000</td><td>0.8586</td><td>0.0000</td></tr>
+<tr><td>4</td><td>5</td><td>1.0000</td><td>0.9170</td><td>0.0000</td></tr>
+<tr><td>5</td><td>1</td><td>1.0000</td><td>0.8638</td><td>0.0000</td></tr>
+<tr><td>5</td><td>5</td><td>1.0000</td><td>0.9198</td><td>0.0000</td></tr></tbody></table>
+
+  <h2>Comunicacao Federada</h2>
+  <table><thead><tr><th>Rodada</th><th>Clientes</th><th>Bytes Totais</th><th>Parametros Totais</th><th>Agregacao</th></tr></thead><tbody><tr><td>1</td><td>10</td><td>18432000</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>2</td><td>10</td><td>18432000</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>3</td><td>10</td><td>18432000</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>4</td><td>10</td><td>18432000</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>5</td><td>10</td><td>18432000</td><td>4608000</td><td>FedAvg</td></tr></tbody></table>
+
+  <div class="note">
+    <strong>Snapshot do ambiente.</strong><br />
+    Host: <code>avancos</code><br />
+    GPU/driver: <code>NVIDIA-SMI has failed because it couldn&#x27;t communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.</code>
+  </div>
+</body>
+</html>

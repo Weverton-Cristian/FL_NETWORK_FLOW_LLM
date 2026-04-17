@@ -1,0 +1,358 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+2 0 obj
+<< /Length 2676 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(Analise Automatizada - WiFi_CICIDS2018_Tuesday_700k_30r_200s_article@page { size: A4;) Tj
+T*
+(margin: 1.4cm; } body { font-family: "Liberation Serif", "DejaVu Serif", serif; color:) Tj
+T*
+(#111; line-height: 1.45; font-size: 11pt; } h1, h2, h3 { color: #102a43; } table {) Tj
+T*
+(border-collapse: collapse; width: 100%; margin: 0.7em 0 1em 0; font-size: 10pt; } th, td) Tj
+T*
+({ border: 1px solid #cbd2d9; padding: 6px 8px; vertical-align: top; } th { background:) Tj
+T*
+(#eaf2f8; text-align: left; } code { background: #f0f4f8; padding: 0.12em 0.25em;) Tj
+T*
+(border-radius: 3px; } pre { background: #f8fafc; border: 1px solid #d9e2ec; padding:) Tj
+T*
+(10px; white-space: pre-wrap; } .note { background: #fffbea; border-left: 4px solid) Tj
+T*
+(#f0b429; padding: 10px 12px; margin: 0.8em 0; }) Tj
+T*
+() Tj
+T*
+(Analise Automatizada do Experimento) Tj
+T*
+() Tj
+T*
+(Experimento:WiFi_CICIDS2018_Tuesday_700k_30r_200s_article) Tj
+T*
+() Tj
+T*
+(Diretorio de) Tj
+T*
+(resultados:/home/weverton/Artigo-LANC-Thiago/FL_RANSOM_LLM/results/WiFi_CICIDS2018_Tuesday_700k_30r_200s_article) Tj
+T*
+() Tj
+T*
+(Melhor Resultado) Tj
+T*
+() Tj
+T*
+(| Rodada | K | Threshold | Limiar | F1 | Precisao | Recall | Benign FPR) Tj
+T*
+(| 14 | 5 | fpr_target | 0.8750 | 0.6276 | 0.8358 | 0.5024 | 0.0987) Tj
+T*
+() Tj
+T*
+(Melhor Rodada por K) Tj
+T*
+() Tj
+T*
+(| K | Melhor Rodada | F1 | Precisao | Recall | Benign FPR) Tj
+T*
+(| 1 | 25 | 0.6260 | 0.8344 | 0.5010 | 0.0994) Tj
+T*
+(| 5 | 14 | 0.6276 | 0.8358 | 0.5024 | 0.0987) Tj
+T*
+() Tj
+T*
+(Splits Utilizados) Tj
+T*
+() Tj
+T*
+(| Split | Total | Benignos | Anomalos) Tj
+T*
+(| train | 560000 | 560000 | 0) Tj
+T*
+(| test | 140000 | 70000 | 70000) Tj
+T*
+(| calibration | 35000 | 35000 | 0) Tj
+T*
+() Tj
+T*
+(Observacoes) Tj
+T*
+() Tj
+T*
+(- O detector ficou relativamente conservador, priorizando precis„o acima de) Tj
+T*
+(  sensibilidade extrema.) Tj
+T*
+(- A melhor rodada apareceu no meio do treino, indicando aprendizado contÌnuo sem) Tj
+T*
+(  saturaÁ„o imediata.) Tj
+T*
+() Tj
+T*
+(Comparacao com Baseline) Tj
+T*
+() Tj
+T*
+(Delta F1:-0.0686; Delta Precisao:0.2991; Delta Recall:-0.4882; Delta Benign FPR:-0.7564.) Tj
+T*
+() Tj
+T*
+(Metricas Temporais) Tj
+T*
+() Tj
+T*
+(| Rodada | K | Cobertura | Benign FPR | TTD Medio \(s\)) Tj
+T*
+(| 1 | 1 | 1.0000 | 0.1004 | 32328.8000) Tj
+T*
+(| 1 | 5 | 1.0000 | 0.0998 | 180.2000) Tj
+T*
+(| 2 | 1 | 1.0000 | 0.0995 | 22784.5000) Tj
+T*
+(| 2 | 5 | 1.0000 | 0.0987 | 3354.5000) Tj
+T*
+(| 3 | 1 | 1.0000 | 0.0997 | 25852.3000) Tj
+T*
+(| 3 | 5 | 1.0000 | 0.1014 | 0.3000) Tj
+T*
+(| 4 | 1 | 1.0000 | 0.0980 | 29172.9000) Tj
+T*
+(| 4 | 5 | 1.0000 | 0.0980 | 0.0000) Tj
+T*
+(| 5 | 1 | 1.0000 | 0.1020 | 29172.8000) Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Length 2617 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(| 5 | 5 | 1.0000 | 0.1023 | 35.6000) Tj
+T*
+(| 6 | 1 | 1.0000 | 0.1016 | 25981.1000) Tj
+T*
+(| 6 | 5 | 1.0000 | 0.1033 | 0.5000) Tj
+T*
+(| 7 | 1 | 1.0000 | 0.1019 | 19605.5000) Tj
+T*
+(| 7 | 5 | 1.0000 | 0.1008 | 0.0000) Tj
+T*
+(| 8 | 1 | 1.0000 | 0.0995 | 9862.0000) Tj
+T*
+(| 8 | 5 | 1.0000 | 0.1019 | 0.0000) Tj
+T*
+(| 9 | 1 | 1.0000 | 0.0997 | 3366.8000) Tj
+T*
+(| 9 | 5 | 1.0000 | 0.0995 | 0.3000) Tj
+T*
+(| 10 | 1 | 1.0000 | 0.1008 | 6650.4000) Tj
+T*
+(| 10 | 5 | 1.0000 | 0.1013 | 12.4000) Tj
+T*
+(| 11 | 1 | 1.0000 | 0.1004 | 3342.8000) Tj
+T*
+(| 11 | 5 | 1.0000 | 0.1013 | 0.4000) Tj
+T*
+(| 12 | 1 | 1.0000 | 0.1027 | 13124.1000) Tj
+T*
+(| 12 | 5 | 1.0000 | 0.1012 | 23.9000) Tj
+T*
+(| 13 | 1 | 1.0000 | 0.1023 | 3246.9000) Tj
+T*
+(| 13 | 5 | 1.0000 | 0.1005 | 12.3000) Tj
+T*
+(| 14 | 1 | 1.0000 | 0.1000 | 3247.5000) Tj
+T*
+(| 14 | 5 | 1.0000 | 0.0987 | 12.3000) Tj
+T*
+(| 15 | 1 | 1.0000 | 0.1022 | 3247.6000) Tj
+T*
+(| 15 | 5 | 1.0000 | 0.1024 | 1.1000) Tj
+T*
+(| 16 | 1 | 1.0000 | 0.1007 | 3270.9000) Tj
+T*
+(| 16 | 5 | 1.0000 | 0.1023 | 3235.3000) Tj
+T*
+(| 17 | 1 | 1.0000 | 0.1033 | 3270.9000) Tj
+T*
+(| 17 | 5 | 1.0000 | 0.1007 | 0.5000) Tj
+T*
+(| 18 | 1 | 1.0000 | 0.1021 | 3282.6000) Tj
+T*
+(| 18 | 5 | 1.0000 | 0.1025 | 0.5000) Tj
+T*
+(| 19 | 1 | 1.0000 | 0.1018 | 3270.4000) Tj
+T*
+(| 19 | 5 | 1.0000 | 0.1039 | 0.5000) Tj
+T*
+(| 20 | 1 | 1.0000 | 0.1038 | 3294.8000) Tj
+T*
+(| 20 | 5 | 1.0000 | 0.1000 | 0.3000) Tj
+T*
+(| 21 | 1 | 1.0000 | 0.1022 | 3308.1000) Tj
+T*
+(| 21 | 5 | 1.0000 | 0.1013 | 0.8000) Tj
+T*
+(| 22 | 1 | 1.0000 | 0.1015 | 3270.9000) Tj
+T*
+(| 22 | 5 | 1.0000 | 0.1029 | 37.1000) Tj
+T*
+(| 23 | 1 | 1.0000 | 0.1021 | 3270.1000) Tj
+T*
+(| 23 | 5 | 1.0000 | 0.1006 | 0.3000) Tj
+T*
+(| 24 | 1 | 1.0000 | 0.1006 | 3282.4000) Tj
+T*
+(| 24 | 5 | 1.0000 | 0.1029 | 0.5000) Tj
+T*
+(| 25 | 1 | 1.0000 | 0.0994 | 3235.3000) Tj
+T*
+(| 25 | 5 | 1.0000 | 0.1017 | 0.6000) Tj
+T*
+(| 26 | 1 | 1.0000 | 0.1031 | 3270.4000) Tj
+T*
+(| 26 | 5 | 1.0000 | 0.1035 | 24.4000) Tj
+T*
+(| 27 | 1 | 1.0000 | 0.1003 | 6588.3000) Tj
+T*
+(| 27 | 5 | 1.0000 | 0.1030 | 12.4000) Tj
+T*
+(| 28 | 1 | 1.0000 | 0.1018 | 3368.5000) Tj
+T*
+(| 28 | 5 | 1.0000 | 0.1035 | 12.4000) Tj
+T*
+(| 29 | 1 | 1.0000 | 0.1020 | 3294.9000) Tj
+T*
+(| 29 | 5 | 1.0000 | 0.1024 | 12.4000) Tj
+T*
+(| 30 | 1 | 1.0000 | 0.1017 | 3294.8000) Tj
+T*
+(| 30 | 5 | 1.0000 | 0.1015 | 0.3000) Tj
+T*
+() Tj
+T*
+(Comunicacao Federada) Tj
+T*
+() Tj
+T*
+(| Rodada | Clientes | Bytes Totais | Parametros Totais | Agregacao) Tj
+T*
+(| 1 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 2 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 3 | 10 | 18432000 | 4608000 | FedAvg) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 1539 >>
+stream
+BT
+/F1 10 Tf
+13 TL
+42 800 Td
+(| 4 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 5 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 6 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 7 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 8 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 9 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 10 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 11 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 12 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 13 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 14 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 15 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 16 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 17 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 18 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 19 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 20 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 21 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 22 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 23 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 24 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 25 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 26 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 27 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 28 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 29 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(| 30 | 10 | 18432000 | 4608000 | FedAvg) Tj
+T*
+(Snapshot do ambiente.Host:avancosGPU/driver:NVIDIA-SMI has failed because it couldn't) Tj
+T*
+(communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed) Tj
+T*
+(and running.) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Pages /Kids [6 0 R 7 0 R 8 0 R] /Count 3 >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+7 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 3 0 R >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+9 0 obj
+<< /Type /Catalog /Pages 5 0 R >>
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000015 00000 n 
+0000000083 00000 n 
+0000002811 00000 n 
+0000005480 00000 n 
+0000007071 00000 n 
+0000007140 00000 n 
+0000007266 00000 n 
+0000007392 00000 n 
+0000007518 00000 n 
+trailer
+<< /Size 10 /Root 9 0 R >>
+startxref
+7567
+%%EOF

@@ -86,3 +86,7 @@ mlruns/
 data/hdfs/raw/
 
 data/ids_ransomware/edge_ransomware/processed/
+data/wifi/raw/
+data/wifi/processed/
+results/
+run_wifi_balanced*.log

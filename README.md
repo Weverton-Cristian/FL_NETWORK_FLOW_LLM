@@ -1,240 +1,468 @@
-# FL-TFlow: Federated LoRA Tuning of SLMs for Edge Ransomware Detection
+# FL_NETWORK_FLOW_LLM
 
-A privacy-preserving framework for ransomware detection in IoT/Edge environments using Federated Learning with Parameter-Efficient Fine-Tuning (LoRA) of Small Language Models.
+Federated LoRA tuning of small language models for network-flow detection.
 
-## Overview
+This repository currently focuses on a WiFi / CIC-IDS2018 Tuesday experiment that converts network flows into text, trains a small language model in a federated setup, and evaluates anomaly detection performance with operational threshold calibration.
 
-**FL-TFlow** addresses the challenge of detecting ransomware in distributed IoT/Edge networks where:
-- Raw data cannot be centralized due to privacy constraints
-- Devices have limited computational resources
-- Labeled attack data is scarce or unavailable
+Historically, this project also includes older experiment tracks tied to the original FL-TFlow line of work. Those legacy configurations and results are still preserved for comparison.
 
-The framework uses a **benign-only training strategy**: by learning exclusively from normal network traffic patterns, the model detects ransomware through degradation in token-prediction scores, enabling zero-day attack detection without prior exposure to attack samples.
+## Current Status
 
-## Key Features
+The recommended experiment in the current version is:
 
-- **Privacy-Preserving**: Raw network flows never leave client devices; only lightweight LoRA adapter updates are shared
-- **Communication-Efficient**: LoRA reduces parameter exchange by orders of magnitude compared to full model fine-tuning
-- **Benign-Only Detection**: No labeled attack data required for training
-- **Flow-to-Text Serialization**: Converts numerical network flow records into textual sequences for language model processing
+- `configs/config_wifi.yaml`
+- simulation name: `WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s`
 
-## Architecture
+This experiment uses:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        FL-TFlow Pipeline                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │   Client 1   │    │   Client 2   │    │   Client N   │      │
-│  │ ┌──────────┐ │    │ ┌──────────┐ │    │ ┌──────────┐ │      │
-│  │ │ Benign   │ │    │ │ Benign   │ │    │ │ Benign   │ │      │
-│  │ │ Flows    │ │    │ │ Flows    │ │    │ │ Flows    │ │      │
-│  │ └────┬─────┘ │    │ └────┬─────┘ │    │ └────┬─────┘ │      │
-│  │      ▼       │    │      ▼       │    │      ▼       │      │
-│  │ Flow-to-Text │    │ Flow-to-Text │    │ Flow-to-Text │      │
-│  │      ▼       │    │      ▼       │    │      ▼       │      │
-│  │ Local Train  │    │ Local Train  │    │ Local Train  │      │
-│  │ (LoRA+FedProx│    │ (LoRA+FedProx│    │ (LoRA+FedProx│      │
-│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘      │
-│         │                   │                   │               │
-│         └───────────────────┼───────────────────┘               │
-│                             ▼                                   │
-│                 ┌───────────────────────┐                       │
-│                 │    Federated Server   │                       │
-│                 │  ┌─────────────────┐  │                       │
-│                 │  │ FedAvg Aggreg.  │  │                       │
-│                 │  │ Global SLM+LoRA │  │                       │
-│                 │  └─────────────────┘  │                       │
-│                 └───────────────────────┘                       │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+- flow-to-text serialization
+- balanced supervised binary classification
+- federated training with LoRA
+- `SmolLM-135M` as the backbone
+- `FedAvg` aggregation
+- operational threshold selection from a benign calibration split
 
-## Methodology
+It supersedes the previous `30`-round WiFi run as the main stable result for this methodology.
+
+## What Changed In This Version
+
+The repository now supports a new methodology for the WiFi/CIC-IDS2018 Tuesday setting:
+
+- training task changed to `sequence_classification`
+- split strategy changed to `balanced_binary`
+- benign and anomaly classes are matched by the minority class
+- the classifier predicts `benign` vs `anomaly` directly
+- thresholding is based on anomaly probability and `fpr_target`
+- evaluation was stabilized in `float32`
+- the recommended run length was reduced from `30` to `12` rounds
+
+This means the current main experiment is no longer the old benign-only, top-k-only detection setup. The flow-to-text representation remains, but the learning objective is now supervised binary classification.
+
+## Main Methodology
 
 ### 1. Flow-to-Text Serialization
 
-Network flows are converted into structured text sequences:
+The raw network-flow CSV is converted into a textual representation using selected flow statistics, such as:
 
-```
-Input (Raw Flow):
-┌────────────────────────────────────────────────────┐
-│ Protocol: TCP, Duration: 0.5s, Fwd_Pkts: 10, ...   │
-└────────────────────────────────────────────────────┘
-                         ▼
-Output (Text Content):
-┌────────────────────────────────────────────────────┐
-│ "protocol TCP flow_duration 0.5 fwd_packets 10 ..." │
-└────────────────────────────────────────────────────┘
-```
+- `Protocol`
+- `Flow Duration`
+- `Tot Fwd Pkts`
+- `Tot Bwd Pkts`
+- `TotLen Fwd Pkts`
+- `TotLen Bwd Pkts`
+- `Flow Byts/s`
+- `Flow Pkts/s`
+- `Flow IAT Mean`
+- `Fwd IAT Mean`
+- `Bwd IAT Mean`
+- `Pkt Len Mean`
+- `Pkt Len Var`
+- `SYN Flag Cnt`
+- `ACK Flag Cnt`
+- `PSH Flag Cnt`
 
-Label-carrying fields (e.g., `Attack_Name`) are excluded to prevent data leakage.
+The text field is stored as `Content` and becomes the input sequence for the tokenizer and model.
 
-### 2. Benign-Only Training
+### 2. Balanced Supervised Split
 
-The SLM learns the "grammar" of normal network behavior through next-token prediction. During inference:
-- **Normal flows**: High prediction accuracy (tokens are predictable)
-- **Ransomware flows**: Low prediction accuracy (anomalous patterns)
+The active WiFi configuration uses:
 
-### 3. Scoring and Detection
+- `training_task: "sequence_classification"`
+- `wifi_split_strategy: "balanced_binary"`
+- `balanced_anchor: "minority"`
+- `train_fraction_per_class: 0.8`
 
-For each flow, a top-k token-prediction score is computed:
+For the current CIC-IDS2018 Tuesday data, the processed experiment uses:
 
-```
-score(x) = (1/L) * Σ I[x_t ∈ Top-k predictions]
+- `576,191` anomaly flows
+- `576,191` matched benign flows
+- `1,152,382` balanced total samples
+- `921,904` train samples
+- `230,478` test samples
+- `35,000` additional benign calibration samples
 
-If score < threshold β → Ransomware (Anomaly)
-If score ≥ threshold β → Benign
-```
+### 3. Federated LoRA Training
 
-## Project Structure
+The current WiFi run uses:
 
-```
-FL-TFlow/
+- `model_name: HuggingFaceTB/SmolLM-135M`
+- `lora: true`
+- `lora_rank: 8`
+- `lora_alpha_multiplier: 2`
+- `lora_dropout: 0.05`
+
+Only the trainable LoRA parameters and classification head updates are exchanged between clients and server.
+
+### 4. Operational Scoring
+
+In the current methodology:
+
+- the model outputs anomaly probabilities
+- the score is the probability of the anomaly class
+- the decision rule is `score >= threshold`
+- the threshold is selected from benign calibration data using `fpr_target = 0.10`
+
+### 5. Stability Fixes
+
+The current version also incorporates an important evaluation fix:
+
+- evaluation now uses `float32`
+- evaluation autocast is disabled
+- threshold selection includes protection against numerical collapse to zero
+
+This was introduced because the older `30`-round WiFi run showed threshold collapse in late rounds under reduced-precision evaluation.
+
+## Repository Layout
+
+```text
+FL_NETWORK_FLOW_LLM/
 ├── configs/
-│   └── config.yaml              # Experiment configuration
+│   ├── config.yaml
+│   ├── config_paper.yaml
+│   ├── config_paper_basiline.yaml
+│   └── config_wifi.yaml
+├── data/
+│   └── wifi/
+│       ├── raw/
+│       └── processed/
+├── docs/
+├── results/
+│   ├── plot/
+│   │   ├── generate_experiment_plots.ipynb
+│   │   ├── throughput_detection_helpers.py
+│   │   └── generated/
+│   └── <simulation_name>/
+├── scripts/
+│   ├── fetch_cicids2018_tuesday.sh
+│   └── generate_graph4_throughput_histogram.py
 ├── src/
 │   ├── data_processing/
-│   │   ├── base_processor.py    # Abstract processor interface
-│   │   └── ransomlog_processor.py
-│   ├── federated_learning/
-│   │   ├── server.py            # FL server (FedAvg aggregation)
-│   │   └── client.py            # Client training logic
 │   ├── evaluation/
-│   │   └── evaluator.py         # Top-k accuracy & F1 evaluation
-│   └── models/
-│       └── model_loader.py      # Model initialization with LoRA
-├── main.py                      # Main entry point
+│   ├── federated_learning/
+│   ├── models/
+│   └── utils/
+├── main.py
 └── requirements.txt
 ```
 
 ## Installation
 
-### Prerequisites
+### Requirements
 
-- Python 3.10+
-- CUDA-compatible GPU (recommended)
+- Python `3.10+`
+- CUDA-compatible GPU recommended for training
+- CPU-only execution is acceptable for evaluation and plots, though slower
 
 ### Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/81wallace18/FL_RANSOM_LLM.git
-cd FL_RANSOM_LLM
+git clone https://github.com/Weverton-Cristian/FL_NETWORK_FLOW_LLM.git
+cd FL_NETWORK_FLOW_LLM
 
-# Create virtual environment
-uv venv
-source .venv/bin/activate  # Linux/macOS
-# or: .venv\Scripts\activate  # Windows
-
-# Install dependencies
-uv pip install -r requirements.txt
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-## Usage
-
-### 1. Prepare Data
-
-Place your dataset in `data/<dataset_name>/raw/`. The framework expects network flow data that can be converted to the Flow-to-Text format.
-
-### 2. Configure Experiment
-
-Edit `configs/config.yaml`:
-
-```yaml
-# General
-simulation_name: "experiment_01"
-dataset_name: "ransomlog"
-
-# Model
-model_name: "HuggingFaceTB/SmolLM-135M"
-lora: True
-lora_rank: 16
-
-# Federated Learning
-num_rounds: 30
-num_clients: 50
-client_frac: 0.2
-
-# Training
-max_steps: 50
-batch_size: 4
-initial_lr: 0.001
-```
-
-### 3. Run Training
-
-**FL-TFlow (our method):**
-```bash
-python main.py --config configs/config_paper.yaml
-```
-
-**Baseline (Talasso et al.):**
-```bash
-python main.py --config configs/config_paper_basiline.yaml
-```
-
-The pipeline will:
-1. Process and tokenize the data
-2. Initialize the global SLM with LoRA
-3. Run federated training for the specified rounds
-4. Evaluate and save results to `results/<simulation_name>/`
-
-## Reproducibility
-
-### Dataset Preparation
-
-The dataset files are included in the repository as compressed archives. Extract them before running:
+If you already have the project locally and the `venv` exists, just activate it:
 
 ```bash
-cd data/ids_ransomware/edge_ransomware/raw/
-gunzip Benign%20Traffic.csv.gz
-gunzip Ransomware.csv.gz
+cd /path/to/FL_NETWORK_FLOW_LLM
+source venv/bin/activate
 ```
 
-### Running the Experiments
+## Data Layout
 
-After extracting the dataset, run the training:
+The current WiFi experiment expects the raw dataset here:
+
+```text
+data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+```
+
+The raw dataset is intentionally not versioned in this repository because the original CSV is several gigabytes in size and exceeds the practical limits of a standard GitHub repository. Reproducibility is preserved by documenting the exact upstream source, file name, placement, and execution steps needed to recreate the experiment locally.
+
+### Dataset Reference
+
+This repository uses the Tuesday processed-flow file from the CSE-CIC-IDS2018 dataset:
+
+- dataset family: `CSE-CIC-IDS2018`
+- expected file: `Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv`
+- local destination: `data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv`
+- official AWS registry page: `https://registry.opendata.aws/cse-cic-ids2018/`
+- direct file URL used by this repository:
+  `https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv`
+
+Recommended citation for the dataset:
+
+- Sharafaldin, I., Habibi Lashkari, A., and Ghorbani, A. A. "Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization." ICISSP 2018.
+
+### Downloading the Dataset
+
+Create the expected directory and download the CSV:
 
 ```bash
-# FL-TFlow (our method)
-python main.py --config configs/config_paper.yaml
-
-# Baseline (Talasso et al.)
-python main.py --config configs/config_paper_basiline.yaml
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+mkdir -p data/wifi/raw
+wget -O data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv \
+  "https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv"
 ```
 
-### Generating Figures
+If you prefer to use the helper script shipped with the repository:
 
-After training completes, run the Jupyter notebook `imagens.ipynb` to generate the paper figures in the `plot/` directory
+```bash
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+bash scripts/fetch_cicids2018_tuesday.sh
+```
 
-## Configuration Parameters
+### Verifying Local Placement
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `model_name` | HuggingFace model identifier | SmolLM-135M |
-| `lora_rank` | LoRA adapter rank | 16 |
-| `num_rounds` | FL communication rounds | 30 |
-| `num_clients` | Total number of clients | 50 |
-| `client_frac` | Fraction of clients per round | 0.2 |
-| `max_steps` | Local training steps per client | 50 |
-| `top_k_values` | Values of k for evaluation | [1, 3, 5, 10] |
+Before running the experiment, confirm that the file exists exactly where the WiFi configuration expects it:
 
-## Results
+```bash
+ls -lh data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+```
 
-Experimental results on the Edge-IIoTSet dataset demonstrate:
+You can also verify that the current configuration points to the same file:
 
-| Metric | FL-TFlow | Baseline |
-|--------|----------|----------|
-| Flow F1-Score | **0.937** | 0.026 |
-| Precision | 0.997 | 0.084 |
-| Recall | 0.884 | 0.016 |
-| Benign FPR | **0.012%** | 0.667% |
+```bash
+rg -n "raw_csv_file|dataset_name|data_base_path" configs/config_wifi.yaml
+```
+
+After preprocessing, the main files are:
+
+- `data/wifi/processed/train.csv`
+- `data/wifi/processed/test.csv`
+- `data/wifi/processed/calibration.csv`
+- `data/wifi/processed/tokenized/`
+
+Additional dataset notes are documented in:
+
+- `data/README.md`
+
+## Recommended Experiment Configuration
+
+The active WiFi configuration is in:
+[configs/config_wifi.yaml](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/configs/config_wifi.yaml)
+
+Key parameters:
+
+| Parameter | Value |
+|---|---:|
+| `simulation_name` | `WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s` |
+| `training_task` | `sequence_classification` |
+| `wifi_split_strategy` | `balanced_binary` |
+| `num_labels` | `2` |
+| `anomaly_label_id` | `1` |
+| `lora_rank` | `8` |
+| `num_rounds` | `12` |
+| `num_clients` | `50` |
+| `client_frac` | `0.2` |
+| `batch_size` | `2` |
+| `max_steps` | `200` |
+| `initial_lr` | `0.001` |
+| `eval_use_autocast` | `false` |
+| `eval_torch_dtype` | `float32` |
+| `threshold_selection` | `fpr_target` |
+| `fpr_target` | `0.10` |
+| `hf_offline` | `true` |
+| `hf_local_files_only` | `true` |
+
+## Running the Current WiFi Experiment
+
+### Standard Run
+
+```bash
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+source venv/bin/activate
+python main.py --config configs/config_wifi.yaml
+```
+
+### End-to-End Reproduction From Scratch
+
+For a clean local reproduction of the current WiFi experiment:
+
+```bash
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+mkdir -p data/wifi/raw
+wget -O data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv \
+  "https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv"
+python main.py --config configs/config_wifi.yaml
+```
+
+If the processed data already exists and you want to force regeneration from the raw CSV, set `force_reprocess_data: true` temporarily in `configs/config_wifi.yaml`.
+
+### Recommended Offline Run
+
+If you are running on a server with unstable internet, use offline mode:
+
+```bash
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+source venv/bin/activate
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export HF_HUB_OFFLINE=1
+python main.py --config configs/config_wifi.yaml | tee run_wifi_balanced_12r.log
+```
+
+### Recommended `tmux` Run
+
+To keep the process alive if the SSH/VS Code connection drops:
+
+```bash
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+tmux new -s wifi_12r_run
+```
+
+Then, inside `tmux`:
+
+```bash
+source venv/bin/activate
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export HF_HUB_OFFLINE=1
+python main.py --config configs/config_wifi.yaml | tee run_wifi_balanced_12r.log
+```
+
+Detach without killing the process:
+
+- `Ctrl+B`
+- then `D`
+
+Reattach later:
+
+```bash
+tmux attach -t wifi_12r_run
+```
+
+## Legacy Experiment Tracks
+
+This repository still preserves older experiment configurations and results for comparison.
+
+Examples:
+
+- `configs/config_paper.yaml`
+- `configs/config_paper_basiline.yaml`
+- `results/WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_30r_200s`
+- `results/WiFi_CICIDS2018_Tuesday_700k_30r_200s_article`
+
+These are useful for historical comparison, but they are not the recommended primary run for the current WiFi methodology.
+
+## Generating Figures
+
+The main plotting workflow is:
+
+- notebook: `results/plot/generate_experiment_plots.ipynb`
+- throughput script: `scripts/generate_graph4_throughput_histogram.py`
+
+### Recommended Notebook Workflow
+
+Open:
+[results/plot/generate_experiment_plots.ipynb](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/plot/generate_experiment_plots.ipynb)
+
+Then:
+
+1. select the project `venv` kernel
+2. run `Run All`
+
+The plots will be saved under:
+
+```text
+results/plot/generated/<simulation_name>/
+```
+
+For the current main experiment:
+
+```text
+results/plot/generated/wifi_cicids2018_tuesday_balanced_seqcls_1152k_12r_200s/
+```
+
+### Throughput Histogram Only
+
+```bash
+cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
+source venv/bin/activate
+python scripts/generate_graph4_throughput_histogram.py
+```
+
+Note:
+
+- if cached throughput files do not exist yet, the script may still run model inference on the selected round
+- this works without GPU, but may be slower on CPU
+
+## Current Results Summary
+
+### Main Stable WiFi Run: `12r`
+
+Results from:
+
+- `results/WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s/f1_scores_fpr_target.csv`
+- `results/WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s/temporal_metrics_fpr_target.csv`
+- `results/WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s/communication_metrics.csv`
+
+Best checkpoint:
+
+| Metric | Value |
+|---|---:|
+| Best round | `8` |
+| F1 | `0.9528` |
+| Precision | `0.9098` |
+| Recall | `1.0000` |
+| Benign FPR | `0.0991` |
+
+Global run behavior:
+
+- `12/12` rounds remained stable
+- no round collapsed to `threshold = 0`
+- final round remained operationally valid
+
+### Previous WiFi Run: `30r`
+
+The previous `30`-round WiFi run reached a strong peak, but became unstable in late rounds:
+
+- best round: `5`
+- best F1: `0.9523`
+- late rounds collapsed due to threshold instability
+- final round became invalid as a representative result
+
+### Legacy Baseline
+
+The older baseline run preserved in the repository achieved much lower recall and F1 than the current supervised WiFi methodology.
+
+Best legacy baseline:
+
+| Metric | Value |
+|---|---:|
+| F1 | `0.6273` |
+| Precision | `0.8310` |
+| Recall | `0.5038` |
+| Benign FPR | `0.1024` |
+
+### Practical Comparison
+
+Compared with the legacy baseline, the current `12r` experiment improves:
+
+- F1 by roughly `+0.326`
+- precision by roughly `+0.078`
+- recall by roughly `+0.496`
+
+while keeping benign false-positive rate at approximately the same operational target.
+
+## Additional Documentation
+
+Detailed technical analysis of the current WiFi methodology and results:
+
+- [docs/wifi_balanced_seqcls_12r_analysis.md](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/docs/wifi_balanced_seqcls_12r_analysis.md)
+
+Plot-specific notes:
+
+- [results/plot/README.md](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/plot/README.md)
 
 ## Citation
 
-If you use this code in your research, please cite:
+If you use this code or the FL-TFlow line of work in research, cite the original publication when appropriate:
 
 ```bibtex
 @inproceedings{cruz2025fltflow,
@@ -245,9 +473,11 @@ If you use this code in your research, please cite:
 }
 ```
 
+When writing about the current WiFi experiment, make it explicit that this repository version also contains a newer balanced supervised sequence-classification track beyond the original benign-only formulation.
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
 ## Acknowledgments
 

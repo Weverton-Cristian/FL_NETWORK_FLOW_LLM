@@ -45,3 +45,13 @@ def hf_from_pretrained_kwargs(config: dict[str, Any]) -> dict[str, Any]:
         out["cache_dir"] = str(cache_dir)
     return out
 
+
+def hf_set_dtype_arg(kwargs: dict[str, Any], dtype: Any) -> dict[str, Any]:
+    """
+    Sets the preferred model dtype argument for `from_pretrained`.
+
+    Newer transformers versions prefer `dtype` over `torch_dtype`.
+    """
+    if dtype is not None:
+        kwargs["dtype"] = dtype
+    return kwargs

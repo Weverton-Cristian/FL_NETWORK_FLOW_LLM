@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Relatório Acadêmico - Experimento 700k / 50 Clientes</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 1.8cm;
+    }
+    body {
+      font-family: "Liberation Serif", "DejaVu Serif", serif;
+      color: #111827;
+      line-height: 1.55;
+      font-size: 11pt;
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+      margin-top: 1.15em;
+      margin-bottom: 0.45em;
+    }
+    h1 {
+      font-size: 22pt;
+      border-bottom: 2px solid #1e293b;
+      padding-bottom: 8px;
+    }
+    h2 {
+      font-size: 16pt;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13pt;
+    }
+    p {
+      margin: 0.45em 0;
+      text-align: justify;
+    }
+    ul {
+      margin: 0.35em 0 0.7em 1.25em;
+    }
+    li {
+      margin: 0.18em 0;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 0.12em 0.25em;
+      border-radius: 3px;
+      font-family: "Liberation Mono", monospace;
+      font-size: 10pt;
+    }
+    pre {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 10px;
+      white-space: pre-wrap;
+      font-family: "Liberation Mono", monospace;
+      font-size: 9.3pt;
+      line-height: 1.35;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.6em 0 1em 0;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    th {
+      background: #e2e8f0;
+      text-align: left;
+    }
+    .capa {
+      min-height: 720px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      page-break-after: always;
+    }
+    .capa h1 {
+      border: none;
+      font-size: 24pt;
+      margin-top: 2.5cm;
+    }
+    .capa .subtitle {
+      font-size: 14pt;
+      line-height: 1.6;
+    }
+    .capa .meta {
+      font-size: 12pt;
+      line-height: 1.7;
+      margin-bottom: 1.5cm;
+    }
+    .ok {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      padding: 10px 12px;
+      margin: 0.8em 0;
+    }
+    .warn {
+      background: #fff7ed;
+      border-left: 4px solid #ea580c;
+      padding: 10px 12px;
+      margin: 0.8em 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="capa">
+    <div></div>
+    <div>
+      <h1>Relatório Acadêmico Completo</h1>
+      <div class="subtitle">
+        Experimento de Aprendizado Federado com <code>700.000</code> logs<br />
+        e <code>50</code> clientes sobre o dataset<br />
+        <code>CIC-IDS2018 - Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code>
+      </div>
+    </div>
+    <div class="meta">
+      <div><strong>Projeto:</strong> <code>FL_NETWORK_FLOW_LLM</code></div>
+      <div><strong>Experimento:</strong> <code>WiFi_CICIDS2018_Tuesday_700k</code></div>
+      <div><strong>Data de geração:</strong> 27/03/2026</div>
+      <div><strong>Raiz do projeto:</strong> <code>/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM</code></div>
+    </div>
+  </div>
+
+  <h2>Resumo</h2>
+  <p>Este relatório documenta de forma aprofundada o experimento final configurado com 700.000 logs processados do dataset CIC-IDS2018 Tuesday e 50 clientes federados no repositório <code>FL_NETWORK_FLOW_LLM</code>. O objetivo foi consolidar uma configuração computacionalmente viável e metodologicamente mais realista do que os experimentos preliminares, preservando a lógica de detecção de anomalias baseada em aprendizado do comportamento benigno e avaliação posterior em conjunto misto.</p>
+<p>A configuração final utilizou 560.000 fluxos benignos para treino, 70.000 fluxos benignos para teste e 70.000 fluxos anômalos para teste, totalizando 700.000 logs. O cenário federado foi organizado em 50 clientes com divisão IID, participação de 20% dos clientes por rodada, 5 rodadas federadas, 10 clientes selecionados por rodada, 2 GPUs e 20 passos de treino por cliente selecionado em cada rodada.</p>
+<p>O melhor resultado observado ocorreu em <code>K=1</code> na rodada <code>3</code>, com <code>F1 = 0.6962</code>, <code>Precisão = 0.5367</code>, <code>Revocação = 0.9906</code> e <code>FPR Benigna = 0.8551</code>. Em comparação com o experimento anterior de 250 mil logs e 2 clientes, houve leve ganho em F1 e pequena redução da FPR benigna, indicando melhoria incremental, embora a taxa de falso positivo ainda permaneça alta para uso operacional.</p>
+  <p><strong>Palavras-chave:</strong> aprendizado federado, detecção de anomalias, CIC-IDS2018, modelos de linguagem, LoRA, análise de tráfego de rede, otimização de experimentos.</p>
+
+  <h2>Abstract</h2>
+  <p>This report presents a complete academic account of the final 700k-log / 50-client experiment conducted on top of the <code>FL_NETWORK_FLOW_LLM</code> repository using the CIC-IDS2018 Tuesday flow dataset. The experiment was designed to balance computational practicality and methodological realism after earlier smaller and much larger trial configurations.</p>
+<p>The final setup used 560,000 benign training flows, 70,000 benign test flows, 70,000 anomalous test flows, 50 IID clients, 20% client participation per round, and 5 federated rounds. The best result was obtained at round 3 with top-1 F1 = 0.6962. The new setup slightly improved F1 and benign false-positive rate over the previous 250k / 2-client experiment, while remaining much more operationally feasible than the full-dataset attempt.</p>
+
+  <h2>1. Introdução</h2>
+  <p>Após a integração bem-sucedida do dataset CIC-IDS2018 Tuesday ao repositório, surgiram três cenários experimentais distintos: um experimento reduzido com 250 mil logs e 2 clientes, uma tentativa de execução do dataset completo com treinamento por época que se mostrou excessivamente custosa, e por fim o experimento atual, concebido como compromisso entre fidelidade e viabilidade.</p>
+<p>O experimento com 700 mil logs e 50 clientes foi escolhido porque preserva diversidade de dados, introduz um cenário federado mais próximo de um ambiente multi-cliente real e, ao mesmo tempo, mantém tempo de execução compatível com ciclos iterativos de pesquisa. Além disso, ele permite analisar explicitamente o efeito de aumentar a quantidade de clientes sem levar o treinamento a uma escala operacionalmente inviável.</p>
+<p>Este relatório é mais completo do que a documentação anterior porque não apenas descreve as mudanças de código e os artefatos gerados, mas também situa o experimento atual dentro da trajetória de adaptação do projeto, compara quantitativamente os resultados com o baseline anterior e explicita as implicações metodológicas de cada decisão de configuração.</p>
+
+  <h2>2. Contexto, Motivação e Histórico da Adaptação</h2>
+  <p>A trilha de Wi-Fi do repositório não havia sido inicialmente projetada para processar um CSV massivo de fluxos de rede. A implementação original dependia de dois pequenos arquivos demonstrativos e de um conjunto simplificado de atributos. Isso foi adequado apenas enquanto o objetivo era demonstrativo.</p>
+<p>A primeira grande adaptação tornou o pipeline capaz de ingerir o arquivo <code>Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code> diretamente de <code>data/wifi/raw/</code>. Em seguida, foram introduzidos controles de cap para permitir experimentação progressiva. O experimento de 250 mil logs e 2 clientes validou a funcionalidade geral do pipeline, mas ainda representava um cenário pequeno. A tentativa subsequente com o dataset completo mostrou que treinar com todos os dados e todas as épocas tornaria o custo temporal excessivo.</p>
+<p>O cenário de 700 mil logs e 50 clientes nasce justamente dessa transição: ele mantém o pipeline real, usa o dataset original sem adulterá-lo, aumenta o número de clientes e amplia o volume de dados em relação ao primeiro experimento, mas faz isso dentro de um orçamento de tempo claramente mais controlado.</p>
+
+  <h2>3. Dataset Utilizado e Estratégia de Armazenamento</h2>
+  <p>O dataset utilizado é o arquivo <code>Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv</code>, pertencente à base CIC-IDS2018. O arquivo bruto foi mantido em <code>data/wifi/raw/</code>, enquanto todos os artefatos derivados ficaram em <code>data/wifi/processed/</code>. Essa separação preserva reprodutibilidade, evita alterações acidentais sobre o dado original e facilita refazer o experimento com diferentes configurações.</p>
+<p>A estrutura final do trabalho manteve o dado bruto como fonte imutável e tratou o conjunto processado como artefato descartável e recriável. Isso foi importante porque ao longo do projeto houve múltiplas iterações de configuração, incluindo o experimento anterior, a tentativa full dataset e o experimento 700k + 50 clientes.</p>
+  <div class="ok">
+    <strong>Dimensões observadas no servidor.</strong><br />
+    Dados brutos: 3.8G	/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/data/wifi/raw<br />
+    Dados processados: 1001M	/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/data/wifi/processed<br />
+    Resultados do experimento atual: 475M	/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday_700k
+  </div>
+
+  <h2>4. Mudanças Estruturais no Código</h2>
+  <p>O experimento atual reaproveita as mudanças estruturais já incorporadas ao projeto. Essas mudanças incluem a refatoração completa do processador de dados, a introdução de um arquivo de configuração específico para Wi-Fi/CIC-IDS2018, o uso de paralelismo controlado entre GPUs, a parametrização conservadora do DataLoader e a reescrita da avaliação para inferência em lotes.</p>
+<p>O arquivo <code>src/data_processing/wifi_processor.py</code> passou a ler um único CSV real, normalizar os rótulos, preservar metadados importantes e construir o campo <code>Content</code> somente depois da aplicação dos caps. Essa última alteração reduziu drasticamente trabalho desnecessário no preprocessamento.</p>
+<p>O arquivo <code>src/federated_learning/client.py</code> passou a aceitar tanto treinos por número fixo de passos quanto treinos dirigidos por época. Para o experimento atual, optou-se por <code>max_steps = 20</code> por cliente selecionado em cada rodada, o que limita o custo de execução.</p>
+<p>O arquivo <code>src/federated_learning/server.py</code> já suportava paralelismo, mas foi configurado e refinado para respeitar limites explícitos de GPU. Já o arquivo <code>src/evaluation/evaluator.py</code> passou a trabalhar em lotes, tornando a avaliação de 140 mil fluxos por rodada viável em tempo razoável.</p>
+
+  <h2>5. Configuração Final do Experimento 700k + 50 Clientes</h2>
+  <p>A configuração final procurou refletir três objetivos simultâneos: aumentar o tamanho do experimento, introduzir número maior de clientes e manter tempo de execução aceitável. Para isso, o conjunto processado foi limitado a 700 mil logs no total, preservando a lógica de treino benign-only do projeto.</p>
+<p>Os 560 mil logs de treino foram distribuídos IID entre 50 clientes, produzindo 11.200 exemplos benignos por cliente. Em cada rodada, 20% dos clientes são selecionados, o que resulta em 10 clientes participantes. Como o servidor dispõe de duas GPUs, esses 10 clientes são processados em 5 batches de 2 clientes.</p>
+  <table><thead><tr><th>Item</th><th>Valor</th></tr></thead><tbody><tr><td>Logs totais do experimento</td><td>700.000</td></tr>
+<tr><td>Treino benigno</td><td>560.000</td></tr>
+<tr><td>Teste benigno</td><td>70.000</td></tr>
+<tr><td>Teste anômalo</td><td>70.000</td></tr>
+<tr><td>Clientes totais</td><td>50</td></tr>
+<tr><td>Fração de clientes por rodada</td><td>0,2</td></tr>
+<tr><td>Clientes selecionados por rodada</td><td>10</td></tr>
+<tr><td>Batches de clientes por rodada</td><td>5 batches de 2 clientes</td></tr>
+<tr><td>Amostras de treino por cliente</td><td>11.200</td></tr>
+<tr><td>Rodadas federadas</td><td>5</td></tr>
+<tr><td>Passos máximos por cliente/rodada</td><td>20</td></tr>
+<tr><td>Tempo total de treino observado</td><td>09m 27s</td></tr>
+<tr><td>Tempo médio por rodada</td><td>01m 53s</td></tr>
+<tr><td>Tempo típico de treino por cliente</td><td>~15,2s a ~15,7s</td></tr></tbody></table>
+  <table><thead><tr><th>Cliente</th><th>Amostras</th></tr></thead><tbody><tr><td>0</td><td>11200</td></tr>
+<tr><td>1</td><td>11200</td></tr>
+<tr><td>2</td><td>11200</td></tr>
+<tr><td>3</td><td>11200</td></tr>
+<tr><td>4</td><td>11200</td></tr>
+<tr><td>5</td><td>11200</td></tr>
+<tr><td>6</td><td>11200</td></tr>
+<tr><td>7</td><td>11200</td></tr>
+<tr><td>8</td><td>11200</td></tr>
+<tr><td>9</td><td>11200</td></tr>
+<tr><td>10</td><td>11200</td></tr>
+<tr><td>11</td><td>11200</td></tr>
+<tr><td>12</td><td>11200</td></tr>
+<tr><td>13</td><td>11200</td></tr>
+<tr><td>14</td><td>11200</td></tr>
+<tr><td>15</td><td>11200</td></tr>
+<tr><td>16</td><td>11200</td></tr>
+<tr><td>17</td><td>11200</td></tr>
+<tr><td>18</td><td>11200</td></tr>
+<tr><td>19</td><td>11200</td></tr>
+<tr><td>20</td><td>11200</td></tr>
+<tr><td>21</td><td>11200</td></tr>
+<tr><td>22</td><td>11200</td></tr>
+<tr><td>23</td><td>11200</td></tr>
+<tr><td>24</td><td>11200</td></tr>
+<tr><td>25</td><td>11200</td></tr>
+<tr><td>26</td><td>11200</td></tr>
+<tr><td>27</td><td>11200</td></tr>
+<tr><td>28</td><td>11200</td></tr>
+<tr><td>29</td><td>11200</td></tr>
+<tr><td>30</td><td>11200</td></tr>
+<tr><td>31</td><td>11200</td></tr>
+<tr><td>32</td><td>11200</td></tr>
+<tr><td>33</td><td>11200</td></tr>
+<tr><td>34</td><td>11200</td></tr>
+<tr><td>35</td><td>11200</td></tr>
+<tr><td>36</td><td>11200</td></tr>
+<tr><td>37</td><td>11200</td></tr>
+<tr><td>38</td><td>11200</td></tr>
+<tr><td>39</td><td>11200</td></tr>
+<tr><td>40</td><td>11200</td></tr>
+<tr><td>41</td><td>11200</td></tr>
+<tr><td>42</td><td>11200</td></tr>
+<tr><td>43</td><td>11200</td></tr>
+<tr><td>44</td><td>11200</td></tr>
+<tr><td>45</td><td>11200</td></tr>
+<tr><td>46</td><td>11200</td></tr>
+<tr><td>47</td><td>11200</td></tr>
+<tr><td>48</td><td>11200</td></tr>
+<tr><td>49</td><td>11200</td></tr></tbody></table>
+  <div class="warn">
+    <strong>Observação metodológica importante.</strong><br />
+    Embora o experimento use 560 mil exemplos benignos no pool de treino, cada cliente selecionado executa apenas 20 passos por rodada. Portanto, o cenário atual não percorre integralmente todo o shard local em cada rodada; ele usa um orçamento de passos controlado para manter viabilidade computacional.
+  </div>
+
+  <h2>6. Como o Cenário com 50 Clientes Funciona na Prática</h2>
+  <p>Com <code>num_clients = 50</code> e <code>client_frac = 0.2</code>, a seleção por rodada é calculada como <code>int(50 * 0.2) = 10</code>. Essa lógica decorre diretamente da implementação do servidor federado.</p>
+<p>Como o servidor possui apenas 2 GPUs, esses 10 clientes não são executados todos simultaneamente. Eles são quebrados em 5 batches sequenciais por rodada, cada batch contendo 2 clientes treinando em paralelo, um em cada GPU. Esse comportamento foi efetivamente observado nos logs, que mostraram sequências do tipo <code>Processing client batch 1/5</code> até <code>5/5</code>.</p>
+
+  <h2>7. Execução Observada e Comportamento Temporal</h2>
+  <p>O treino completo terminou em 09m27s, com média de 01m53s por rodada. Cada batch de clientes levou aproximadamente 15 segundos para concluir seus 20 passos, o que é coerente com o tempo global observado por rodada.</p>
+<p>Esse resultado é importante porque mostra que o aumento do número de clientes não inviabilizou o experimento. Ao contrário, com um orçamento controlado de passos por cliente, foi possível escalar de 2 para 50 clientes mantendo a execução em um intervalo de tempo muito razoável para pesquisa iterativa.</p>
+<p>Em seguida, a avaliação percorreu as 5 rodadas e processou o conjunto de teste completo de 140 mil fluxos em cada checkpoint. A fase de avaliação foi concluída com sucesso e gerou os arquivos <code>f1_scores.csv</code>, <code>temporal_metrics.csv</code> e <code>communication_metrics.csv</code>.</p>
+
+  <h2>8. Resultados Quantitativos do Experimento Atual</h2>
+  <h3>8.1 Melhores resultados por valor de K</h3>
+  <table><thead><tr><th>K</th><th>Melhor Rodada</th><th>Limiar</th><th>F1</th><th>Precisão</th><th>Revocação</th><th>FPR Benigna</th></tr></thead><tbody><tr><td>1</td><td>3</td><td>0.90</td><td>0.6962</td><td>0.5367</td><td>0.9906</td><td>0.8551</td></tr>
+<tr><td>5</td><td>5</td><td>0.97</td><td>0.6754</td><td>0.5156</td><td>0.9790</td><td>0.9198</td></tr></tbody></table>
+  <h3>8.2 Resultados completos por rodada</h3>
+  <table><thead><tr><th>Rodada</th><th>K</th><th>Limiar</th><th>F1</th><th>Precisão</th><th>Revocação</th><th>FPR Benigna</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>0.78</td><td>0.6723</td><td>0.5071</td><td>0.9972</td><td>0.9691</td></tr>
+<tr><td>1</td><td>5</td><td>0.93</td><td>0.6712</td><td>0.5064</td><td>0.9950</td><td>0.9699</td></tr>
+<tr><td>2</td><td>1</td><td>0.89</td><td>0.6906</td><td>0.5298</td><td>0.9917</td><td>0.8801</td></tr>
+<tr><td>2</td><td>5</td><td>0.98</td><td>0.6722</td><td>0.5074</td><td>0.9952</td><td>0.9660</td></tr>
+<tr><td>3</td><td>1</td><td>0.90</td><td>0.6962</td><td>0.5367</td><td>0.9906</td><td>0.8551</td></tr>
+<tr><td>3</td><td>5</td><td>0.98</td><td>0.6751</td><td>0.5109</td><td>0.9946</td><td>0.9520</td></tr>
+<tr><td>4</td><td>1</td><td>0.91</td><td>0.6960</td><td>0.5361</td><td>0.9921</td><td>0.8586</td></tr>
+<tr><td>4</td><td>5</td><td>0.97</td><td>0.6754</td><td>0.5160</td><td>0.9774</td><td>0.9170</td></tr>
+<tr><td>5</td><td>1</td><td>0.92</td><td>0.6961</td><td>0.5353</td><td>0.9950</td><td>0.8638</td></tr>
+<tr><td>5</td><td>5</td><td>0.97</td><td>0.6754</td><td>0.5156</td><td>0.9790</td><td>0.9198</td></tr></tbody></table>
+  <h3>8.3 Métricas temporais</h3>
+  <table><thead><tr><th>Rodada</th><th>K</th><th>TTD Médio (s)</th><th>TTD Mediano (s)</th><th>Cobertura</th><th>FPR Benigna</th><th>Dispositivos Atacados</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9691</td><td>10</td></tr>
+<tr><td>1</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9699</td><td>10</td></tr>
+<tr><td>2</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8801</td><td>10</td></tr>
+<tr><td>2</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9660</td><td>10</td></tr>
+<tr><td>3</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8551</td><td>10</td></tr>
+<tr><td>3</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9520</td><td>10</td></tr>
+<tr><td>4</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8586</td><td>10</td></tr>
+<tr><td>4</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9170</td><td>10</td></tr>
+<tr><td>5</td><td>1</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.8638</td><td>10</td></tr>
+<tr><td>5</td><td>5</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>0.9198</td><td>10</td></tr></tbody></table>
+  <h3>8.4 Métricas de comunicação</h3>
+  <table><thead><tr><th>Rodada</th><th>Clientes Selecionados</th><th>Bytes Totais</th><th>Bytes Médios/Cliente</th><th>Parâmetros Totais</th><th>Agregação</th></tr></thead><tbody><tr><td>1</td><td>10</td><td>18432000</td><td>1843200.0</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>2</td><td>10</td><td>18432000</td><td>1843200.0</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>3</td><td>10</td><td>18432000</td><td>1843200.0</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>4</td><td>10</td><td>18432000</td><td>1843200.0</td><td>4608000</td><td>FedAvg</td></tr>
+<tr><td>5</td><td>10</td><td>18432000</td><td>1843200.0</td><td>4608000</td><td>FedAvg</td></tr></tbody></table>
+
+  <h2>9. Comparação com o Experimento Anterior (250k / 2 clientes)</h2>
+  <p>Uma vantagem desta documentação é situar o experimento atual em relação ao baseline anteriormente executado com 250 mil logs e 2 clientes. Essa comparação é relevante porque mostra que o aumento do volume de dados e do número de clientes não apenas permaneceu viável, mas também trouxe uma pequena melhoria quantitativa nas métricas centrais.</p>
+<p>No baseline anterior, o melhor ponto para <code>K=1</code> foi obtido na rodada 2, com <code>F1 = 0.6949</code> e <code>FPR Benigna = 0.8604</code>. No experimento atual, o melhor ponto surgiu na rodada 3, com <code>F1 = 0.6962</code> e <code>FPR Benigna = 0.8551</code>.</p>
+  <table><thead><tr><th>Cenário</th><th>Melhor Rodada</th><th>F1</th><th>Precisão</th><th>Revocação</th><th>FPR Benigna</th></tr></thead><tbody><tr><td>Experimento anterior (250k / 2 clientes)</td><td>2</td><td>0.6949</td><td>0.5352</td><td>0.9907</td><td>0.8604</td></tr>
+<tr><td>Experimento atual (700k / 50 clientes)</td><td>3</td><td>0.6962</td><td>0.5367</td><td>0.9906</td><td>0.8551</td></tr>
+<tr><td>Delta (atual - anterior)</td><td>-</td><td>0.0013</td><td>0.0015</td><td>-0.0001</td><td>-0.0054</td></tr></tbody></table>
+  <p>Em termos absolutos, o ganho foi modesto, mas real: <strong>delta de F1 = 0.0013</strong> e <strong>delta de FPR Benigna = -0.0054</strong>. Como a FPR diminuiu, esse delta negativo é positivo do ponto de vista operacional.</p>
+
+  <h2>10. Interpretação dos Resultados</h2>
+  <p>O melhor resultado do experimento atual ocorreu em <code>K=1</code> na rodada 3, com <code>F1 = 0.6962</code>. Isso indica que o modelo está efetivamente aprendendo um sinal útil de separação entre tráfego benigno e tráfego anômalo. A precisão ficou em torno de 0.5367, enquanto a revocação permaneceu extremamente alta, em 0.9906.</p>
+<p>Essa combinação revela um padrão já visto em experimentos anteriores: o modelo quase não perde anomalias, mas continua classificando benignos demais como suspeitos. Em outras palavras, o sistema se mostra sensível, porém ainda pouco específico.</p>
+<p>O fato de a melhor rodada ter surgido em torno da rodada 3, com estabilidade nas rodadas 4 e 5, sugere que o processo convergiu rapidamente. Isso reforça a escolha de manter 5 rodadas, já que aumentá-las substancialmente provavelmente geraria custo adicional maior do que o benefício incremental em desempenho.</p>
+
+  <h2>11. Limitações e Considerações Metodológicas</h2>
+  <ul>
+    <li>O treino permanece benign-only, coerente com a proposta do projeto, mas isso limita comparações com abordagens supervisionadas.</li>
+    <li>O uso de <code>max_steps = 20</code> por cliente/rodada reduz custo, mas também significa que cada cliente não percorre todo seu shard local a cada rodada.</li>
+    <li>O limiar é selecionado com base em <code>f1_max</code>, estratégia útil para análise experimental, mas não necessariamente ideal para um detector operacional.</li>
+    <li>Ainda que o conjunto total seja maior do que o baseline anterior, ele continua sendo um recorte controlado do dataset bruto.</li>
+    <li>A FPR benigna continua alta, o que indica necessidade de calibração adicional antes de qualquer uso operacional.</li>
+  </ul>
+
+  <h2>12. Conclusão</h2>
+  <p>O experimento com 700 mil logs e 50 clientes representa, até o momento, o melhor compromisso entre realismo federado, custo computacional e capacidade de experimentação no contexto deste projeto. Ele se mostrou mais completo e informativo do que o cenário anterior, sem herdar a inviabilidade temporal da tentativa full dataset.</p>
+<p>A execução foi estável, os resultados ficaram consistentes entre rodadas e houve leve melhora sobre o baseline anterior. O sistema continua apresentando alta sensibilidade e FPR benigna elevada, o que deixa claro que a próxima fronteira de melhoria não é apenas escalar o volume de dados, mas calibrar melhor o critério de decisão.</p>
+<p>Como base para documentação, esse experimento fornece um retrato mais fiel do estado atual do projeto: código adaptado para dados reais, pipeline federado funcional, execução multi-GPU controlada, cenário com 50 clientes e métricas suficientemente ricas para orientar os próximos passos científicos.</p>
+
+  <h2>Apêndice A. Inventário de Arquivos</h2>
+  <pre>FL_NETWORK_FLOW_LLM/
+├── configs/config_wifi.yaml
+├── data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+├── data/wifi/processed/train.csv
+├── data/wifi/processed/test.csv
+├── data/wifi/processed/tokenized/
+├── results/WiFi_CICIDS2018_Tuesday/
+├── results/WiFi_CICIDS2018_Tuesday_700k/
+│   ├── client_data/client_data_metadata.json
+│   ├── communication_metrics.csv
+│   ├── f1_scores.csv
+│   ├── temporal_metrics.csv
+│   └── round_0 ... round_5/
+├── src/data_processing/wifi_processor.py
+├── src/federated_learning/client.py
+├── src/federated_learning/server.py
+├── src/evaluation/evaluator.py
+└── docs/
+    ├── generate_wifi_report.py
+    ├── generate_wifi_report_academic_ptbr.py
+    ├── generate_wifi_report_700k_50clients_ptbr.py
+    └── Relatorio_Academico_WiFi_700k_50clientes.pdf</pre>
+
+  <h2>Apêndice B. Configuração Completa do Experimento Atual</h2>
+  <pre>simulation_name: &quot;WiFi_CICIDS2018_Tuesday_700k&quot;
+
+dataset_name: &quot;wifi&quot;
+description: &quot;WiFi/network-flow anomaly detection using the CIC-IDS2018 Tuesday flow CSV.&quot;
+
+data_base_path: &quot;./data/&quot;
+results_path: &quot;./results/&quot;
+
+# Raw dataset placement:
+#   data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+raw_csv_file: &quot;Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv&quot;
+label_column: &quot;Label&quot;
+normal_label_values: [&quot;Benign&quot;]
+
+# Flow-to-text conversion:
+# The processor will use whichever of these columns are actually present in the CSV.
+wifi_content_columns:
+  - &quot;Protocol&quot;
+  - &quot;Flow Duration&quot;
+  - &quot;Tot Fwd Pkts&quot;
+  - &quot;Tot Bwd Pkts&quot;
+  - &quot;TotLen Fwd Pkts&quot;
+  - &quot;TotLen Bwd Pkts&quot;
+  - &quot;Flow Byts/s&quot;
+  - &quot;Flow Bytes/s&quot;
+  - &quot;Flow Pkts/s&quot;
+  - &quot;Flow IAT Mean&quot;
+  - &quot;Fwd IAT Mean&quot;
+  - &quot;Bwd IAT Mean&quot;
+  - &quot;Pkt Len Mean&quot;
+  - &quot;Pkt Len Var&quot;
+  - &quot;SYN Flag Cnt&quot;
+  - &quot;ACK Flag Cnt&quot;
+  - &quot;PSH Flag Cnt&quot;
+
+# Split strategy:
+# Only benign traffic is used for training.
+train_benign_fraction: 0.8
+benign_calibration_fraction: 0.0
+random_seed: 42
+test_balance: false
+
+# Controlled-run controls:
+# Total target for this experiment: ~700k logs
+# - 560k benign logs for training
+# - 70k benign logs for test
+# - 70k anomalous logs for test
+# This preserves the anomaly-detection logic of the project:
+# training remains benign-only, and the test set mixes benign + anomaly.
+raw_nrows: null
+benign_train_cap: 560000
+calibration_benign_cap: null
+test_benign_cap: 70000
+test_anomaly_cap: 70000
+
+model_name: &quot;HuggingFaceTB/SmolLM-135M&quot;
+
+lora: true
+lora_rank: 8
+lora_alpha_multiplier: 2
+lora_dropout: 0.05
+
+use_parallel_training: true
+max_parallel_gpus: 2
+
+num_rounds: 5
+num_clients: 50
+client_frac: 0.2
+
+# Training policy for the 700k experiment:
+# - max_steps remains capped for practicality.
+# - Each selected client still trains for a controlled number of steps per round.
+max_steps: 20
+num_train_epochs: 1
+logging_steps: 100
+batch_size: 2
+dataloader_num_workers: 4
+dataloader_pin_memory: true
+dataloader_persistent_workers: true
+initial_lr: 0.001
+lr_scheduler_type: &quot;constant&quot;
+warmup_steps: 0
+
+force_reprocess_data: true
+evaluator_version: &quot;new&quot;
+eval_batch_size: 4
+eval_use_autocast: true
+eval_torch_dtype: &quot;float16&quot;
+
+top_k_values: [1, 5]
+threshold_metric: &quot;top1&quot;
+threshold_strategy: &quot;f1_max&quot;
+f1_threshold_steps: 101</pre>
+
+  <h2>Apêndice C. Comandos de Reprodução</h2>
+  <pre>cd ~/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM\nsource venv/bin/activate\nrm -rf results/WiFi_CICIDS2018_Tuesday_700k\nrm -rf data/wifi/processed/*\npython main.py --config configs/config_wifi.yaml</pre>
+
+  <h2>Apêndice D. Evidências do Ambiente de Execução</h2>
+  <pre>avancos\nLinux avancos 6.17.0-19-generic #19-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar  6 14:02:58 UTC 2026 x86_64 GNU/Linux</pre>
+  <pre>Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           46 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  32
+On-line CPU(s) list:                     0-31
+Vendor ID:                               GenuineIntel
+Model name:                              13th Gen Intel(R) Core(TM) i9-13900K
+CPU family:                              6
+Model:                                   183
+Thread(s) per core:                      2
+Core(s) per socket:                      24
+Socket(s):                               1
+Stepping:                                1
+CPU(s) scaling MHz:                      88%
+CPU max MHz:                             5400.0000
+CPU min MHz:                             800.0000
+BogoMIPS:                                5990.40
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities
+Virtualization:                          VT-x
+L1d cache:                               896 KiB (24 instances)
+L1i cache:                               1.3 MiB (24 instances)
+L2 cache:                                32 MiB (12 instances)
+L3 cache:                                36 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-31
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Ghostwrite:                Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Old microcode:             Not affected
+Vulnerability Reg file data sampling:    Mitigation; Clear Register File
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace</pre>
+  <pre>total        used        free      shared  buff/cache   available
+Mem:           123Gi        53Gi       9.1Gi        56Mi        61Gi        69Gi
+Swap:           30Gi       452Ki        30Gi</pre>
+
+  <h2>Apêndice E. Localização dos Arquivos Gerados</h2>
+  <pre>HTML: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/docs/Relatorio_Academico_WiFi_700k_50clientes.html\nPDF: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/docs/Relatorio_Academico_WiFi_700k_50clientes.pdf\nResultados atuais: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday_700k\nResultados baseline: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/WiFi_CICIDS2018_Tuesday\nConfig: /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/configs/config_wifi.yaml</pre>
+</body>
+</html>
