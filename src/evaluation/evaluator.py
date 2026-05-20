@@ -391,6 +391,55 @@ class Evaluator:
         # Want P(score < th) ~= target for benign-only calibration set.
         return float(np.quantile(scores, target))
 
+    def _benchmark_scores_from_outputs(
+        self, outputs, input_ids, attention_mask, benchmark_k: int
+    ):
+        logits = outputs.logits
+
+        if self._is_sequence_classification():
+            if logits.shape[-1] == 1:
+                scores = torch.sigmoid(logits.squeeze(-1))
+            else:
+                probs = torch.softmax(logits, dim=-1)
+                scores = probs[:, self._anomaly_label_id()]
+            return scores.detach().float().cpu().numpy()
+
+        method = self.config.get("accuracy_method", "shifted")
+
+        if method in ("original", "legacy_flat"):
+            top_k_preds_indices = torch.topk(logits, benchmark_k, dim=-1).indices
+            if method == "legacy_flat":
+                top_k_preds_indices = top_k_preds_indices.cpu().numpy()
+                input_tokens = input_ids.cpu().numpy()
+                valid_mask = attention_mask.cpu().numpy().astype(bool)
+                scores = []
+                for sample_idx in range(len(input_tokens)):
+                    valid_tokens = input_tokens[sample_idx][valid_mask[sample_idx]]
+                    correct_predictions = sum(
+                        self._is_in_top_k(top_k_preds_indices[sample_idx], token)
+                        for token in valid_tokens
+                    )
+                    total_tokens = len(valid_tokens)
+                    scores.append(
+                        correct_predictions / total_tokens if total_tokens > 0 else 0.0
+                    )
+                return np.asarray(scores, dtype=np.float32)
+
+            matches = (top_k_preds_indices == input_ids.unsqueeze(-1)).any(dim=-1)
+            valid_mask = attention_mask.bool()
+            correct_predictions = (matches & valid_mask).sum(dim=-1).float()
+            total_tokens = valid_mask.sum(dim=-1).clamp_min(1).float()
+            return (correct_predictions / total_tokens).detach().cpu().numpy()
+
+        shifted_logits = logits[..., :-1, :].contiguous()
+        labels = input_ids[..., 1:].contiguous()
+        valid_mask = attention_mask[..., 1:].bool()
+        top_k_preds = torch.topk(shifted_logits, benchmark_k, dim=-1).indices
+        matches = (top_k_preds == labels.unsqueeze(-1)).any(dim=-1)
+        correct = (matches & valid_mask).sum(dim=-1).float()
+        total = valid_mask.sum(dim=-1).clamp_min(1).float()
+        return (correct / total).detach().cpu().numpy()
+
     def _benchmark_inference(self, model, tokenizer, texts, *, round_num):
         if not texts:
             return None
@@ -399,70 +448,183 @@ class Evaluator:
         max_len = int(
             self.config.get("eval_max_length", self.config.get("max_length", 1024))
         )
-        timings_ms = []
+        configured_batch_sizes = self.config.get("benchmark_batch_sizes")
+        if configured_batch_sizes:
+            batch_sizes = sorted(
+                {
+                    max(1, int(batch_size))
+                    for batch_size in configured_batch_sizes
+                    if int(batch_size) > 0
+                }
+            )
+        else:
+            batch_sizes = sorted(
+                {
+                    1,
+                    max(1, int(self.config.get("eval_batch_size", 1))),
+                }
+            )
 
-        if torch.cuda.is_available():
-            torch.cuda.reset_peak_memory_stats()
+        benchmark_threshold = float(self.config.get("benchmark_threshold", 0.5))
+        benchmark_k = int(self.config.get("benchmark_k", self.config["top_k_values"][0]))
+        use_autocast = bool(self.config.get("eval_use_autocast", True))
+        timed_texts = [str(text) for text in texts[warmup:]]
+        warmup_texts = [str(text) for text in texts[:warmup]]
+        all_results = []
 
         model.to(self.device)
         model.eval()
 
-        with torch.no_grad():
-            # Warmup
-            for text in texts[:warmup]:
-                inputs = tokenizer(
-                    str(text),
-                    return_tensors="pt",
-                    padding=True,
-                    truncation=True,
-                    max_length=max_len,
-                )
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
-                _ = model(**inputs)
+        for batch_size in batch_sizes:
+            e2e_per_sample_ms = []
+            forward_per_sample_ms = []
+            batch_elapsed_ms = []
 
-            # Timed
-            for text in texts[warmup:]:
-                inputs = tokenizer(
-                    str(text),
-                    return_tensors="pt",
-                    padding=True,
-                    truncation=True,
-                    max_length=max_len,
-                )
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
-                start = time.perf_counter()
-                _ = model(**inputs)
-                end = time.perf_counter()
-                timings_ms.append((end - start) * 1000.0)
+            if torch.cuda.is_available():
+                torch.cuda.reset_peak_memory_stats()
 
-        if timings_ms:
-            mean_ms = float(np.mean(timings_ms))
-            std_ms = float(np.std(timings_ms))
-        else:
-            mean_ms = float("nan")
-            std_ms = float("nan")
+            with torch.no_grad():
+                for start_idx in range(0, len(warmup_texts), batch_size):
+                    batch_texts = warmup_texts[start_idx : start_idx + batch_size]
+                    if not batch_texts:
+                        continue
+                    inputs = tokenizer(
+                        batch_texts,
+                        return_tensors="pt",
+                        padding=True,
+                        truncation=True,
+                        max_length=max_len,
+                    )
+                    inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                    if torch.cuda.is_available() and use_autocast:
+                        autocast_dtype = (
+                            torch.bfloat16
+                            if str(self.config.get("eval_torch_dtype", "")).lower().strip()
+                            in ("bfloat16", "bf16")
+                            else torch.float16
+                        )
+                        autocast_ctx = torch.autocast(
+                            device_type="cuda", dtype=autocast_dtype
+                        )
+                    else:
+                        autocast_ctx = nullcontext()
 
-        if torch.cuda.is_available():
-            peak_mb = float(torch.cuda.max_memory_allocated() / (1024 * 1024))
-        else:
-            peak_mb = float("nan")
+                    with autocast_ctx:
+                        _ = model(**inputs)
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
 
-        return {
-            "round": int(round_num),
-            "model_name": self.config.get("model_name", ""),
-            "eval_max_length": max_len,
-            "num_samples": int(len(texts)),
-            "warmup": warmup,
-            "timed_samples": int(len(timings_ms)),
-            "mean_ms_per_sample": mean_ms,
-            "std_ms_per_sample": std_ms,
-            "peak_cuda_memory_mb": peak_mb,
-            # FedProx parameters for comparison
-            "fedprox_mu": float(self.config.get("fedprox_mu", 0.0)),
-            "aggregation_method": "FedProx"
-            if self.config.get("fedprox_mu", 0.0) > 0
-            else "FedAvg",
-        }
+                for start_idx in range(0, len(timed_texts), batch_size):
+                    batch_texts = timed_texts[start_idx : start_idx + batch_size]
+                    if not batch_texts:
+                        continue
+
+                    start_total = time.perf_counter()
+                    inputs = tokenizer(
+                        batch_texts,
+                        return_tensors="pt",
+                        padding=True,
+                        truncation=True,
+                        max_length=max_len,
+                    )
+                    inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+                    start_forward = time.perf_counter()
+
+                    if torch.cuda.is_available() and use_autocast:
+                        autocast_dtype = (
+                            torch.bfloat16
+                            if str(self.config.get("eval_torch_dtype", "")).lower().strip()
+                            in ("bfloat16", "bf16")
+                            else torch.float16
+                        )
+                        autocast_ctx = torch.autocast(
+                            device_type="cuda", dtype=autocast_dtype
+                        )
+                    else:
+                        autocast_ctx = nullcontext()
+
+                    with autocast_ctx:
+                        outputs = model(**inputs)
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+                    end_forward = time.perf_counter()
+
+                    scores = self._benchmark_scores_from_outputs(
+                        outputs,
+                        inputs["input_ids"],
+                        inputs.get(
+                            "attention_mask",
+                            torch.ones_like(inputs["input_ids"], device=inputs["input_ids"].device),
+                        ),
+                        benchmark_k,
+                    )
+                    _ = self._predict_from_scores(scores, benchmark_threshold)
+                    if torch.cuda.is_available():
+                        torch.cuda.synchronize()
+                    end_total = time.perf_counter()
+
+                    batch_count = len(batch_texts)
+                    e2e_ms = (end_total - start_total) * 1000.0
+                    forward_ms = (end_forward - start_forward) * 1000.0
+                    batch_elapsed_ms.append(e2e_ms)
+                    e2e_per_sample_ms.extend([e2e_ms / batch_count] * batch_count)
+                    forward_per_sample_ms.extend([forward_ms / batch_count] * batch_count)
+
+            if torch.cuda.is_available():
+                peak_mb = float(torch.cuda.max_memory_allocated() / (1024 * 1024))
+            else:
+                peak_mb = float("nan")
+
+            timed_samples = len(e2e_per_sample_ms)
+            total_e2e_seconds = float(sum(batch_elapsed_ms) / 1000.0)
+            throughput = (
+                float(timed_samples / total_e2e_seconds)
+                if total_e2e_seconds > 0
+                else float("nan")
+            )
+
+            def _summary(values, percentile):
+                if not values:
+                    return float("nan")
+                return float(np.percentile(values, percentile))
+
+            all_results.append(
+                {
+                    "round": int(round_num),
+                    "model_name": self.config.get("model_name", ""),
+                    "eval_max_length": max_len,
+                    "num_samples": int(len(texts)),
+                    "warmup": warmup,
+                    "timed_samples": int(timed_samples),
+                    "benchmark_batch_size": int(batch_size),
+                    "benchmark_k": int(benchmark_k),
+                    "benchmark_threshold": float(benchmark_threshold),
+                    "mean_e2e_ms_per_sample": _summary(e2e_per_sample_ms, 50)
+                    if len(e2e_per_sample_ms) == 1
+                    else float(np.mean(e2e_per_sample_ms))
+                    if e2e_per_sample_ms
+                    else float("nan"),
+                    "median_e2e_ms_per_sample": _summary(e2e_per_sample_ms, 50),
+                    "p95_e2e_ms_per_sample": _summary(e2e_per_sample_ms, 95),
+                    "p99_e2e_ms_per_sample": _summary(e2e_per_sample_ms, 99),
+                    "mean_forward_ms_per_sample": float(np.mean(forward_per_sample_ms))
+                    if forward_per_sample_ms
+                    else float("nan"),
+                    "median_forward_ms_per_sample": _summary(forward_per_sample_ms, 50),
+                    "p95_forward_ms_per_sample": _summary(forward_per_sample_ms, 95),
+                    "p99_forward_ms_per_sample": _summary(forward_per_sample_ms, 99),
+                    "throughput_samples_per_second": throughput,
+                    "peak_cuda_memory_mb": peak_mb,
+                    "fedprox_mu": float(self.config.get("fedprox_mu", 0.0)),
+                    "aggregation_method": "FedProx"
+                    if self.config.get("fedprox_mu", 0.0) > 0
+                    else "FedAvg",
+                }
+            )
+
+        return all_results
 
     def _compute_temporal_metrics_from_df(self, df, round_num, k, *, granularity):
         """
@@ -645,7 +807,10 @@ class Evaluator:
                     model, tokenizer, texts, round_num=round_num
                 )
                 if bench is not None:
-                    all_bench_results.append(bench)
+                    if isinstance(bench, list):
+                        all_bench_results.extend(bench)
+                    else:
+                        all_bench_results.append(bench)
 
             print("Calculating accuracies...")
             # Calculate accuracies

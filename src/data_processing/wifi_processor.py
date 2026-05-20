@@ -15,12 +15,9 @@ class WiFiProcessor(BaseProcessor):
     """
     Processor for Wi-Fi / network-flow CSV datasets.
 
-    Preferred input mode:
+    Supported input mode:
       - a single raw CSV placed in data/wifi/raw/
       - labels in a column such as "Label"
-
-    Backward-compatible input mode:
-      - benign_wifi.csv and anomaly_wifi.csv in data/wifi/raw/
     """
 
     DEFAULT_CONTENT_COLUMNS = [
@@ -128,37 +125,14 @@ class WiFiProcessor(BaseProcessor):
             for file_name in os.listdir(self.raw_path)
             if file_name.lower().endswith(".csv")
         )
-        legacy_pair = {"benign_wifi.csv", "anomaly_wifi.csv"}
-        single_csv_candidates = [
-            name for name in csv_candidates if name not in legacy_pair
-        ]
-
-        if len(single_csv_candidates) == 1:
-            return os.path.join(self.raw_path, single_csv_candidates[0])
-        if len(single_csv_candidates) > 1:
+        if len(csv_candidates) == 1:
+            return os.path.join(self.raw_path, csv_candidates[0])
+        if len(csv_candidates) > 1:
             raise ValueError(
                 "Multiple raw CSV files found in wifi/raw and raw_csv_file is not set. "
-                f"Candidates: {single_csv_candidates}"
+                f"Candidates: {csv_candidates}"
             )
         return ""
-
-    def _load_legacy_raw_csvs(self) -> Optional[pd.DataFrame]:
-        benign_path = os.path.join(self.raw_path, "benign_wifi.csv")
-        anomaly_path = os.path.join(self.raw_path, "anomaly_wifi.csv")
-        if not (os.path.exists(benign_path) and os.path.exists(anomaly_path)):
-            return None
-
-        print("Loading legacy WiFi CSV files (benign_wifi.csv + anomaly_wifi.csv)...")
-        benign_df = self._read_csv(benign_path)
-        anomaly_df = self._read_csv(anomaly_path)
-        benign_df.columns = benign_df.columns.str.strip()
-        anomaly_df.columns = anomaly_df.columns.str.strip()
-
-        benign_df["Label_raw"] = "Benign"
-        benign_df["Label"] = 0
-        anomaly_df["Label_raw"] = "Anomaly"
-        anomaly_df["Label"] = 1
-        return pd.concat([benign_df, anomaly_df], ignore_index=True)
 
     def _detect_label_column(self, df: pd.DataFrame) -> str:
         configured = self.config.get("label_column", "Label")
@@ -200,13 +174,10 @@ class WiFiProcessor(BaseProcessor):
     def _load_single_raw_dataframe(self) -> pd.DataFrame:
         raw_csv_path = self._resolve_raw_csv_path()
         if not raw_csv_path:
-            legacy_df = self._load_legacy_raw_csvs()
-            if legacy_df is None:
-                raise FileNotFoundError(
-                    f"No supported raw WiFi dataset found in {self.raw_path}. "
-                    "Expected either a single raw CSV or the legacy benign/anomaly pair."
-                )
-            return legacy_df
+            raise FileNotFoundError(
+                f"No supported raw WiFi dataset found in {self.raw_path}. "
+                "Expected the CIC-IDS2018 raw CSV configured by raw_csv_file."
+            )
 
         print(f"Loading WiFi flows from: {raw_csv_path}")
         df = self._read_csv(raw_csv_path)

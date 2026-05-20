@@ -239,7 +239,7 @@ f1_threshold_steps: 101</pre>
   <p>The main functional improvements are listed below:</p>
   <ul>
     <li><strong>Single-file loading.</strong> The processor resolves <code>raw_csv_file</code> from the config and supports the CIC-IDS2018 CSV directly.</li>
-    <li><strong>Backward compatibility.</strong> The legacy pair <code>benign_wifi.csv</code> + <code>anomaly_wifi.csv</code> is still accepted as a fallback mode.</li>
+    <li><strong>Legacy-path removal.</strong> The placeholder pair <code>benign_wifi.csv</code> + <code>anomaly_wifi.csv</code> no longer participates in the active Wi-Fi pipeline.</li>
     <li><strong>Robust label normalization.</strong> Text labels such as <code>Benign</code> and numeric <code>0/1</code> values are normalized into a clean binary column <code>Label</code>, while the raw original label is preserved in <code>Label_raw</code>.</li>
     <li><strong>Flexible feature selection.</strong> The processor uses whichever of the configured preferred columns actually exist in the raw schema.</li>
     <li><strong>Benign-only training strategy.</strong> Only benign flows are written to <code>train.csv</code>; test data is composed of benign holdout plus anomalous flows.</li>

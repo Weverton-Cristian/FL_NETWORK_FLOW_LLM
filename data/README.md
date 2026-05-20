@@ -9,6 +9,7 @@ The current main experiment expects this raw CSV:
 - file name: `Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv`
 - expected local path: `data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv`
 - dataset family: `CSE-CIC-IDS2018`
+- legacy toy files such as `benign_wifi.csv` and `anomaly_wifi.csv` are not part of the active pipeline
 
 Official references:
 

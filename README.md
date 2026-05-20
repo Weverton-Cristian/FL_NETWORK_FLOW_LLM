@@ -201,7 +201,6 @@ Recommended citation for the dataset:
 Create the expected directory and download the CSV:
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 mkdir -p data/wifi/raw
 wget -O data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv \
   "https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv"
@@ -210,7 +209,6 @@ wget -O data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv \
 If you prefer to use the helper script shipped with the repository:
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 bash scripts/fetch_cicids2018_tuesday.sh
 ```
 
@@ -242,7 +240,7 @@ Additional dataset notes are documented in:
 ## Recommended Experiment Configuration
 
 The active WiFi configuration is in:
-[configs/config_wifi.yaml](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/configs/config_wifi.yaml)
+[configs/config_wifi.yaml](configs/config_wifi.yaml)
 
 Key parameters:
 
@@ -267,12 +265,15 @@ Key parameters:
 | `hf_offline` | `true` |
 | `hf_local_files_only` | `true` |
 
+The checked-in configuration is optimized for controlled reruns on a machine that
+already has the Hugging Face model cached. For a first run on a fresh clone, pass
+temporary command-line overrides to allow downloading the model.
+
 ## Running the Current WiFi Experiment
 
 ### Standard Run
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 source venv/bin/activate
 python main.py --config configs/config_wifi.yaml
 ```
@@ -282,24 +283,32 @@ python main.py --config configs/config_wifi.yaml
 For a clean local reproduction of the current WiFi experiment:
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 mkdir -p data/wifi/raw
 wget -O data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv \
   "https://cse-cic-ids2018.s3.amazonaws.com/Processed%20Traffic%20Data%20for%20ML%20Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv"
-python main.py --config configs/config_wifi.yaml
+python main.py --config configs/config_wifi.yaml \
+  --set hf_offline=false \
+  --set hf_local_files_only=false
 ```
 
-If the processed data already exists and you want to force regeneration from the raw CSV, set `force_reprocess_data: true` temporarily in `configs/config_wifi.yaml`.
+If the processed data already exists and you want to force regeneration from the
+raw CSV, add:
+
+```bash
+--set force_reprocess_data=true
+```
+
+The `--set KEY=VALUE` option overrides top-level YAML fields without editing the
+tracked configuration file.
 
 ### Recommended Offline Run
 
 If you are running on a server with unstable internet, use offline mode:
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 source venv/bin/activate
 export TRANSFORMERS_OFFLINE=1
 export HF_DATASETS_OFFLINE=1
@@ -312,7 +321,6 @@ python main.py --config configs/config_wifi.yaml | tee run_wifi_balanced_12r.log
 To keep the process alive if the SSH/VS Code connection drops:
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 tmux new -s wifi_12r_run
 ```
 
@@ -350,39 +358,57 @@ Examples:
 
 These are useful for historical comparison, but they are not the recommended primary run for the current WiFi methodology.
 
-## Generating Figures
+## Generating Figures And Comparison Artifacts
 
-The main plotting workflow is:
+Generated figures and result tables are intentionally written under `results/`,
+which is ignored by Git because these artifacts can become large. The tracked
+code needed to recreate them is kept under `scripts/`.
 
-- notebook: `results/plot/generate_experiment_plots.ipynb`
-- throughput script: `scripts/generate_graph4_throughput_histogram.py`
+### Evaluate An Existing Experiment
 
-### Recommended Notebook Workflow
+If checkpoints already exist and you want to regenerate operational metrics
+without retraining:
 
-Open:
-[results/plot/generate_experiment_plots.ipynb](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/plot/generate_experiment_plots.ipynb)
-
-Then:
-
-1. select the project `venv` kernel
-2. run `Run All`
-
-The plots will be saved under:
-
-```text
-results/plot/generated/<simulation_name>/
+```bash
+source venv/bin/activate
+python scripts/evaluate_existing_experiment.py \
+  --config configs/config_wifi.yaml \
+  --simulation_name WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s \
+  --threshold_selection fpr_target \
+  --fpr_target 0.10
 ```
 
-For the current main experiment:
+### Compare Against FL-LLM-AD
+
+If a sibling `FL-LLM-AD` checkout exists next to this repository, the comparison
+script can auto-discover it:
+
+```bash
+source venv/bin/activate
+python scripts/compare_operational_results.py \
+  --legacy_sim wifi_tuesday_1152k_fl_llm_ad_12r \
+  --proposed_sim WiFi_CICIDS2018_Tuesday_balanced_seqcls_1152k_12r_200s \
+  --threshold_mode fpr_target \
+  --fpr_target 0.10 \
+  --expected_rounds 12 \
+  --require_same_rounds
+```
+
+If the legacy checkout is elsewhere, pass it explicitly:
 
 ```text
-results/plot/generated/wifi_cicids2018_tuesday_balanced_seqcls_1152k_12r_200s/
+--legacy_root /path/to/FL-LLM-AD
+```
+
+Outputs are saved under:
+
+```text
+results/comparisons/<legacy_sim>__vs__<proposed_sim>/
 ```
 
 ### Throughput Histogram Only
 
 ```bash
-cd /home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM
 source venv/bin/activate
 python scripts/generate_graph4_throughput_histogram.py
 ```
@@ -454,11 +480,7 @@ while keeping benign false-positive rate at approximately the same operational t
 
 Detailed technical analysis of the current WiFi methodology and results:
 
-- [docs/wifi_balanced_seqcls_12r_analysis.md](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/docs/wifi_balanced_seqcls_12r_analysis.md)
-
-Plot-specific notes:
-
-- [results/plot/README.md](/home/weverton/Artigo-LANC-Thiago/FL_NETWORK_FLOW_LLM/results/plot/README.md)
+- [docs/wifi_balanced_seqcls_12r_analysis.md](docs/wifi_balanced_seqcls_12r_analysis.md)
 
 ## Citation
 

@@ -38,6 +38,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.zip
 
 # ===================
 # Virtual Environment
@@ -80,6 +81,7 @@ configs/temp/
 *.log
 logs/
 .cache/
+.matplotlib/
 wandb/
 mlruns/
 

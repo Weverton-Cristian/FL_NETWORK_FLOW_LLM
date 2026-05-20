@@ -41,7 +41,7 @@ def _set_global_seed(config: dict) -> None:
         torch.cuda.manual_seed_all(seed)
     print(f"Global random seed set to {seed}.")
 
-def main(config_path):
+def main(config_path, config_overrides=None):
     """
     Main function to orchestrate the federated learning pipeline.
     """
@@ -52,7 +52,8 @@ def main(config_path):
     except FileNotFoundError:
         print(f"Error: Configuration file not found at {config_path}")
         return
-        
+    config = _merge_overrides(config, config_overrides)
+
     print("Configuration loaded successfully.")
     print(f"Starting simulation: {config.get('simulation_name', 'N/A')}")
 
@@ -112,25 +113,52 @@ def main(config_path):
 
 import multiprocessing as mp
 
+def _parse_cli_overrides(raw_overrides: list[str] | None) -> dict:
+    """
+    Parses flat KEY=VALUE overrides using YAML semantics for values.
+
+    Example:
+      --set hf_offline=false --set calibration_num_samples=1000
+    """
+    parsed = {}
+    for raw in raw_overrides or []:
+        if "=" not in raw:
+            raise ValueError(f"Invalid override '{raw}'. Expected KEY=VALUE.")
+        key, value = raw.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"Invalid override '{raw}'. Empty key.")
+        parsed[key] = yaml.safe_load(value)
+    return parsed
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run Federated Learning for Anomaly Detection.")
+    parser.add_argument('--config', type=str, default='configs/config.yaml',
+                        help='Path to the YAML configuration file.')
+    parser.add_argument(
+        "--set",
+        dest="overrides",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override a top-level YAML value. Can be used multiple times.",
+    )
+    args = parser.parse_args()
+
     # Define o método de início de multiprocessamento como 'spawn'.
     # Isso é crucial para evitar erros de inicialização da CUDA em processos filhos.
-    # Deve ser chamado dentro deste bloco if e antes de qualquer código de paralelismo.
     try:
         mp.set_start_method('spawn', force=True)
         print("Método de início de multiprocessamento configurado para 'spawn'.")
     except RuntimeError:
         # Pode já ter sido definido, o que não é um problema.
         pass
-
-    parser = argparse.ArgumentParser(description="Run Federated Learning for Anomaly Detection.")
-    parser.add_argument('--config', type=str, default='configs/config.yaml',
-                        help='Path to the YAML configuration file.')
-    args = parser.parse_args()
     
     # Ensure the script's working directory is the project root
     # This makes path handling in config.yaml consistent
     project_root = os.path.dirname(os.path.abspath(__file__))
     os.chdir(project_root)
 
-    main(args.config)
+    cli_overrides = _parse_cli_overrides(args.overrides)
+    main(args.config, cli_overrides)
