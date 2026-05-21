@@ -491,7 +491,7 @@ please cite the corresponding LANC 2026 paper:
 ```bibtex
 @inproceedings{cardoso2026lightweight,
   title={Lightweight Anomaly Detection in Enterprise Wi-Fi Networks Using LoRA-Adapted Small Language Models},
-  author={Cardoso, Tiago and Duarte, Weverton and Costa, Allan Douglas and Cerqueira, Eduardo},
+  author={Tiago Cardoso and Weverton Duarte and Allan Douglas Costa and Eduardo Cerqueira},
   booktitle={2026 Latin America Networking Conference (LANC 2026)},
   publisher={ACM},
   address={Mexico City, Mexico},
