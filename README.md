@@ -491,14 +491,9 @@ please cite the corresponding LANC 2026 paper:
 ```bibtex
 @inproceedings{cardoso2026lightweight,
   title={Lightweight Anomaly Detection in Enterprise Wi-Fi Networks Using LoRA-Adapted Small Language Models},
-  author={Tiago Cardoso and Weverton Duarte and Allan Douglas Costa and Eduardo Cerqueira},
+  author={Tiago Cardoso, Weverton Duarte, Allan Douglas Costa, Eduardo Cerqueira},
   booktitle={2026 Latin America Networking Conference (LANC 2026)},
-  publisher={ACM},
-  address={Mexico City, Mexico},
-  month={September},
-  year={2026},
-  url={https://github.com/Weverton-Cristian/FL_NETWORK_FLOW_LLM},
-  note={To appear}
+  year={2026}
 }
 ```
 
@@ -508,7 +503,7 @@ context in this repository, also cite the original publication when appropriate:
 ```bibtex
 @inproceedings{cruz2025fltflow,
   title={FL-TFlow: Benign-Only Federated LoRA Tuning of SLMs for Edge Ransomware Detection},
-  author={Cruz, Wallace P. and Pinto, Jose and Marques, Thiago and Veiga, Rafael and Santos, Hugo and Bastos, Lucas and Talasso, Gabriel and Costa, Allan and Ros{\'a}rio, Denis and Cerqueira, Eduardo},
+  author={Wallace P. Cruz, Jose Pinto, Thiago Marques, Rafael Veiga, Hugo Santos, Lucas Bastos, Gabriel Talasso, Allan Costa, Denis Ros{\'a}rio, Eduardo Cerqueira},
   booktitle={SBRC 2025},
   year={2025}
 }
