@@ -484,7 +484,26 @@ Detailed technical analysis of the current WiFi methodology and results:
 
 ## Citation
 
-If you use this code or the FL-TFlow line of work in research, cite the original publication when appropriate:
+If you use this repository, the WiFi/CIC-IDS2018 supervised federated
+sequence-classification pipeline, or the comparison scripts in academic work,
+please cite the corresponding LANC 2026 paper:
+
+```bibtex
+@inproceedings{cardoso2026lightweight,
+  title={Lightweight Anomaly Detection in Enterprise Wi-Fi Networks Using LoRA-Adapted Small Language Models},
+  author={Cardoso, Tiago and Duarte, Weverton and Costa, Allan Douglas and Cerqueira, Eduardo},
+  booktitle={2026 Latin America Networking Conference (LANC 2026)},
+  publisher={ACM},
+  address={Mexico City, Mexico},
+  month={September},
+  year={2026},
+  url={https://github.com/Weverton-Cristian/FL_NETWORK_FLOW_LLM},
+  note={To appear}
+}
+```
+
+If you use or discuss the original FL-TFlow line of work preserved as historical
+context in this repository, also cite the original publication when appropriate:
 
 ```bibtex
 @inproceedings{cruz2025fltflow,
@@ -495,7 +514,9 @@ If you use this code or the FL-TFlow line of work in research, cite the original
 }
 ```
 
-When writing about the current WiFi experiment, make it explicit that this repository version also contains a newer balanced supervised sequence-classification track beyond the original benign-only formulation.
+When writing about the current WiFi experiment, make it explicit that this
+repository version contains the newer balanced supervised sequence-classification
+track beyond the original benign-only formulation.
 
 ## License
 
