@@ -22,6 +22,15 @@ but can be slow for full training.
 bash scripts/fetch_cicids2018_tuesday.sh
 ```
 
+Equivalent AWS Open Data command:
+
+```bash
+mkdir -p data/wifi/raw
+aws s3 cp --no-sign-request --region ca-central-1 \
+  "s3://cse-cic-ids2018/Processed Traffic Data for ML Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv" \
+  data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+```
+
 Expected raw file:
 
 ```text

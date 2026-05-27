@@ -212,6 +212,16 @@ If you prefer to use the helper script shipped with the repository:
 bash scripts/fetch_cicids2018_tuesday.sh
 ```
 
+Alternatively, the same file can be downloaded through the public AWS Open Data
+bucket without AWS credentials:
+
+```bash
+mkdir -p data/wifi/raw
+aws s3 cp --no-sign-request --region ca-central-1 \
+  "s3://cse-cic-ids2018/Processed Traffic Data for ML Algorithms/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv" \
+  data/wifi/raw/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv
+```
+
 ### Verifying Local Placement
 
 Before running the experiment, confirm that the file exists exactly where the WiFi configuration expects it:
